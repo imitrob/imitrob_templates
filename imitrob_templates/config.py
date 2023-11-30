@@ -1,6 +1,7 @@
 
 
-PickTask = {
+PickTaskConfig = {
+    'id': 80,
     'name': 'pick',
     'pars_compulsary': ['target_action', 'target_object'],
     'pars_voluntary': [],
@@ -16,6 +17,9 @@ PickTask = {
         },
     # hard requirements
     'requirements': {'+': ['reachable', 'pickable'], '-': ['glued']},
-    'complexity': 1
+    'execution_config_params': {
+        'move_near_z_offset': 0.1,
+        'move_final_z_offset': 0.04,
+    }
 }
 
