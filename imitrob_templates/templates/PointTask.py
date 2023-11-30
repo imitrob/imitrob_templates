@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-'''
 from crow_nlp.nlp_crow.database.Ontology import Template
 
 from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
@@ -9,9 +8,9 @@ from crow_nlp.nlp_crow.modules.PositionStorageDetector import PositionStorageDet
 from crow_nlp.nlp_crow.structures.tagging.TaggedText import TaggedText
 from crow_nlp.nlp_crow.modules.UserInputManager import UserInputManager
 from crow_msgs.msg import CommandType
-'''
+
 import logging
-'''
+
 class PointTask(Template):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,9 +25,11 @@ class PointTask(Template):
         self.action_type = self.templ_det[self.lang]['point']
         self.action = CommandType.POINT
         self.logger = logging.getLogger(__name__)
-
-        # related to parameters ?
-        self.compare_types = ['action', 'selections']
+        
+        
+        self.name = 'point'
+        self.compare_types = ['template', 'selections']
+        self.complexity = 1
 
     def match(self, tagged_text : TaggedText, language = 'en', client = None) -> None:
         psd = PositionStorageDetector(language=language, client = client)
@@ -63,22 +64,6 @@ class PointTask(Template):
             pg = PositionStorageGrounder(language = self.lang, client = client)
             self.target = pg.ground_storage(self.storage)
             self.parameters.append('target')
-
-    def has_compare_type(self, compare_type):
-        return False
-
-
-    def has_compare_type(self, compare_type):
-        if compare_type in self.compare_types:
-            return True
-        else:
-            return False
-'''
-class PointTask():
-    def __init__(self):
-        self.name = 'point'
-        self.compare_types = ['template', 'selections']
-        self.complexity = 1
 
     def has_compare_type(self, compare_type):
         if compare_type in self.compare_types:

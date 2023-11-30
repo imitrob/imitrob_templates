@@ -1,20 +1,27 @@
 
 
-# from imitrob_hri.imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
+from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
 import numpy as np
 from copy import deepcopy
-from config import PickTaskConfig
-import ycb_data
+from imitrob_templates.config import PickTaskConfig
+import imitrob_templates.ycb_data
 
-from utils import get_quaternion_eef
+from imitrob_templates.utils import get_quaternion_eef
 
 from teleop_msgs.msg import Intent
 
-class PickTask():
-    def __init__(self):
+from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
+from crow_nlp.nlp_crow.database.Ontology import Template
+
+class PickTask(Template):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # This is general init -> can be in Tempalate
         self.name = PickTaskConfig['name']
         self.id = PickTaskConfig['id']
         self.pars_compulsary = PickTaskConfig['pars_compulsary']
+        self.pars_voluntary = PickTaskConfig['pars_voluntary']
         
         self.n_target_objects = 1
         
@@ -23,6 +30,18 @@ class PickTask():
         
         # REVISE: Will it be saved 
         self.grounded_vars = {}
+        
+        self.target_action = 'seber123'
+        self.target_object = 'cube321'
+        
+    
+    def get_all_filled_voluntary_parameters(self):
+        # TODO:
+        return self.pars_voluntary
+    
+    @property
+    def parameters(self):
+        return self.pars_compulsary.extend(self.get_all_filled_voluntary_parameters())
     
     @property
     def compare_types(self):
@@ -68,37 +87,53 @@ class PickTask():
         Returns:
             match (Bool): 
         '''
-        # 1. Load all trigger words (verbs) for this template
+        od = ObjectDetector(language = language, client = client)
+        self.target = od.detect_object(tagged_text)
+
+        # # 1. Load all trigger words (verbs) for this template
         # trigger_words = template_name_synonyms[self.id]
-        trigger_words = ['pick', 'PICK_TASK', 'seber', 'pick', 'PickTask']
-        # 2. Occurance
-        if tagged_text.action in trigger_words:
-            matched = True
-        else:
-            matched = False
+        # # 2. Occurance
+        # if tagged_text.action in trigger_words:
+        #     matched = True
+        # else:
+        #     matched = False
             
-        if matched:
-            return True
-        else:
-            return False
+        # if matched:
+        #     return True
+        # else:
+        #     return False
         
-    def ground(self, i, s):
+    def ground(self, language = 'en', client = None):
         ''' Grounding on the real objects 
         (Runs in Modality Merger)
         '''
+        
+        
+        self.lang = language
+        self.ui = UserInputManager(language=self.lang)
+        self.guidance_file = self.ui.load_file('guidance_dialogue.json')
+        og = ObjectGrounder(language=self.lang, client=client)
+        if self.target:
+            self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
+            names_to_add = ['target_ph_cls', 'target_ph_color', 'target_ph_loc']
+            for name in names_to_add:
+                if getattr(self, name):
+                    self.parameters.append(name)
 
+        return
         # I don't know what will be the format of the scene retrived from the ontology
         # [{'uri': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#test_CUBE_498551_od_498551'), 'id': 'od_498551', 'color': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#COLOR_GREEN'), 'color_nlp_name_CZ': 'zelená', 'color_nlp_name_EN': 'green', 'nlp_name_CZ': 'kostka', 'nlp_name_EN': 'cube', 'absolute_location': [-0.34157065, 0.15214929, -0.24279054]}]
         
         # Finds i.target_object in the ontology objects
         # Input:
+        '''
         i.target_object
         s
         
         self.grounded_vars['object_names'] = s[0]['id']
         
         return s[0] # tmp
-
+        '''
         
     def blueprint_mode_1(self, robot_client):
         '''
@@ -146,7 +181,7 @@ class PickTask():
             
             p[2] += self.execution_config_params['move_near_z_offset']
             # Get Robot EEF rotation from object orientation
-            q = np.array(get_quaternion_eef(scene_object.quaternion, scene_object.name))
+            q = np.array(get_quaternion_eef(scene_object['quaternion'], scene_object['nlp_name_EN']))
             
             # Checks if target position is correct
             # r = RealRobotConvenience.check_or_return(p, q)
@@ -170,7 +205,7 @@ class PickTask():
             ''' Move to object grasp point '''
             p = deepcopy(np.array(scene_object['absolute_location']))
             p[2] += ycb_data.OFFSETS[scene_object['id']]
-            q = deepcopy(np.array(get_quaternion_eef(scene_object['quaternion'], scene_object['id'])))
+            q = deepcopy(np.array(get_quaternion_eef(scene_object['quaternion'], scene_object['nlp_name_EN'])))
             # r = RealRobotConvenience.check_or_return(p, q)
             # if r == 'r': return r
             robot_client.move_pose(p, q)
@@ -203,7 +238,9 @@ class PickTask():
             raise Exception(NotImplementedError)
         
         relevant_data = {}
-        for n,step in enumerate(steps):
+        for step in steps:
             ret, relevant_data = step(relevant_data)
             if ret == False: return 'Failure'
+            
+        return 'Succeeded'
         

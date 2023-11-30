@@ -3,6 +3,11 @@
 from spatialmath import UnitQuaternion
 import spatialmath as sm
 
+import numpy as np
+import imitrob_templates.ycb_data
+from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
+
+
 def get_quaternion_eef(q_, name):
     ''' Based on CosyPose, where each object (name) has OFFSET
     '''
