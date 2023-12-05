@@ -41,7 +41,9 @@ class PickTask(Template):
     
     @property
     def parameters(self):
-        return self.pars_compulsary.extend(self.get_all_filled_voluntary_parameters())
+        params = self.pars_compulsary
+        params.extend(self.get_all_filled_voluntary_parameters())
+        return params
     
     @property
     def compare_types(self):
@@ -244,3 +246,7 @@ class PickTask(Template):
             
         return 'Succeeded'
         
+if __name__ == '__main__':
+    task = PickTask()
+    print("This is task: ")
+    print(task)
