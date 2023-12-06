@@ -4,7 +4,7 @@ from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
 import numpy as np
 from copy import deepcopy
 from imitrob_templates.config import PickTaskConfig
-import imitrob_templates.ycb_data
+from imitrob_templates.object_config import get_z_offset_from_center
 
 from imitrob_templates.utils import get_quaternion_eef
 
@@ -28,11 +28,14 @@ class PickTask(Template):
         self.target_object_penalizatiion = PickTaskConfig['target_object_penalization']
         self.execution_config_params = PickTaskConfig['execution_config_params']
         
-        # REVISE: Will it be saved 
-        self.grounded_vars = {}
-        
-        self.target_action = 'seber123'
-        self.target_object = 'cube321'
+        # Set placeholder for grounded variables
+        for parameter in self.parameters:
+            setattr(self, parameter, '')
+            # For PickTaks e.g.:
+            # self.target_action = 'seber'
+            # self.target_object = 'cube'
+
+        self.scene = None
         
     
     def get_all_filled_voluntary_parameters(self):
@@ -41,6 +44,11 @@ class PickTask(Template):
     
     @property
     def parameters(self):
+        """ The Grounded variables 
+
+        Returns:
+            List of Strings: pars compulsary & pars voluntary
+        """        
         params = self.pars_compulsary
         params.extend(self.get_all_filled_voluntary_parameters())
         return params
@@ -48,7 +56,8 @@ class PickTask(Template):
     @property
     def compare_types(self):
         return self.pars_compulsary
-        
+    
+    @property
     def complexity(self):
         return self.compare_types - 1 # complexity = 1
 
@@ -89,6 +98,11 @@ class PickTask(Template):
         Returns:
             match (Bool): 
         '''
+
+        self.target_object = tagged_text.target_object
+        self.target_action = tagged_text.target_action
+
+        return
         od = ObjectDetector(language = language, client = client)
         self.target = od.detect_object(tagged_text)
 
@@ -110,7 +124,7 @@ class PickTask(Template):
         (Runs in Modality Merger)
         '''
         
-        
+        return
         self.lang = language
         self.ui = UserInputManager(language=self.lang)
         self.guidance_file = self.ui.load_file('guidance_dialogue.json')
@@ -132,110 +146,109 @@ class PickTask(Template):
         i.target_object
         s
         
-        self.grounded_vars['object_names'] = s[0]['id']
-        
         return s[0] # tmp
         '''
-        
+    
+    def ground_realpositions(self, s):
+        self.scene = s
+    
     def blueprint_mode_1(self, robot_client):
         '''
         Involving self vars:
             object_names (String[] or Int[]): Unique IDs of objects
             
         '''
-        object_names = self.grounded_vars['object_names']
         
-        def check_preconditions():
-            if len(object_names) != self.n_target_objects: return False
-            
+        def check_preconditions(relevant_data):
             # if not check_grasped(): return False
             
-            return True
+            
+            return True, relevant_data
         
-        def get_ground_data(s):
-            '''  
-            Args:    
-                s (Scene)
+        def get_ground_data(relevant_data):
+            ''' Gather all information needed to execute the task
+            
             Returns:
                 parameters e.g. scene_object (object)
             '''
             # Here is listed all the data parameters to complete
             # the Task, e.g. Here single object_name
-            target_object_name = object_names[0]
+            target_object_name = self.target_object
             
-            # Load scene_object using its ID
-            def get_object_by_name(target_object_name):
-                for scene_object in s:
-                    if scene_object['id'] == target_object_name:
-                        return scene_object
-                raise Exception("Handle object not visible now")
-            
-            grounded_data = {
-                'scene_object': get_object_by_name(target_object_name),
+            # Load target_object using its ID
+            relevant_data = {
+                'target_object': self.scene.get_object_by_name(target_object_name),
             }
+
+            # Check once again that taget_object is detected
+            assert relevant_data['target_object'] is not None
+
             # Returns list of grounded data
-            return grounded_data
+            return True, relevant_data
         
         def move_1(relevant_data):
-            scene_object = relevant_data['scene_object']
+            target_object = relevant_data['target_object']
             ''' Move above the picking object '''
-            p = deepcopy(np.array(scene_object['absolute_location']))
+            p = deepcopy(np.array(target_object.absolute_location))
             
             p[2] += self.execution_config_params['move_near_z_offset']
             # Get Robot EEF rotation from object orientation
-            q = np.array(get_quaternion_eef(scene_object['quaternion'], scene_object['nlp_name_EN']))
+            q = np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN))
             
             # Checks if target position is correct
             # r = RealRobotConvenience.check_or_return(p, q)
             # if r == 'r': return r
-            
+
             robot_client.open_gripper()
             robot_client.move_pose(p, q)
-            
+            input("good?")
             # if not RealRobotConvenience.correction_by_teleop():
             #     return 'q'
             # else:
             #     pass
-            #     # print(f"scene_object position corrected, diff {scene_object['absolute_location'][0] - md.goal_pose.position.x}, {scene_object['absolute_location'][1] - md.goal_pose.position.y}")
-            #     # Manually update scene_object position, e.g.:
-            #     # scene_object['absolute_location'][0] = md.goal_pose.position.x
-            #     # scene_object['absolute_location'][1] = md.goal_pose.position.y
+            #     # print(f"target_object position corrected, diff {target_object['absolute_location'][0] - md.goal_pose.position.x}, {scene_object['absolute_location'][1] - md.goal_pose.position.y}")
+            #     # Manually update target_object position, e.g.:
+            #     # target_object['absolute_location'][0] = md.goal_pose.position.x
+            #     # target_object['absolute_location'][1] = md.goal_pose.position.y
             return True, relevant_data
         
         def move_2(relevant_data):
-            scene_object = relevant_data['scene_object']
+            target_object = relevant_data['target_object']
             ''' Move to object grasp point '''
-            p = deepcopy(np.array(scene_object['absolute_location']))
-            p[2] += ycb_data.OFFSETS[scene_object['id']]
-            q = deepcopy(np.array(get_quaternion_eef(scene_object['quaternion'], scene_object['nlp_name_EN'])))
+            p = deepcopy(np.array(target_object.absolute_location))
+            p[2] += get_z_offset_from_center(target_object.name)
+            q = deepcopy(np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN)))
             # r = RealRobotConvenience.check_or_return(p, q)
             # if r == 'r': return r
             robot_client.move_pose(p, q)
             robot_client.close_gripper()
-            # Pragmatic: Pick scene_object should have included some time delay
+            input("good?")
+            # Pragmatic: Pick target_object should have included some time delay
             # time.sleep(2.)
             relevant_data['p'], relevant_data['q'] = p, q
             return True, relevant_data
             
         def move_3(relevant_data):
-            scene_object = relevant_data['scene_object']
+            target_object = relevant_data['target_object']
             p, q = relevant_data['p'], relevant_data['q']
             ''' Move up littlebit '''
             p[2] += self.execution_config_params['move_final_z_offset']
+            
             robot_client.move_pose(p, q)
+            input("good?")
             
             return True, relevant_data
 
-        def check_postconditions():
+        def check_postconditions(relevant_data):
             # if check_grasped(): return False
 
-            return True
+            return True, relevant_data
 
         return check_preconditions, get_ground_data, move_1, move_2, move_3, check_postconditions
 
-    def execute(self, mode=1):
+    def execute(self, robot_client, mode=1):
         if mode == 1:
-            steps = self.blueprint_mode_1()
+            steps = self.blueprint_mode_1(robot_client)
         else:
             raise Exception(NotImplementedError)
         

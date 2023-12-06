@@ -1,13 +1,66 @@
 import numpy as np
 
+    
+
+
 OFFSETS = {'sugar box': 0.085+0.04, 'cracker box': 0.107+0.03, 'pudding box': 0.045+0.07,
 'mustard bottle': 0.095+0.07, 'bowl': 0.05, 'potted meat can': 0.02, 'foam brick': 0.0,
-'tomato soup can': 0.03, 'drawer': 0.3, 'mug': 0.03, 'cube': 0.02
+'tomato soup can': 0.03, 'drawer': 0.3, 'mug': 0.03, 'cube': 0.02,
+'wheel': 0.01,
+'cube_holes': 0.02,
 }
+
+def get_z_offset_from_center(name):
+    """Picks predefined offset from the OFFSET dict,
+      - crow object names e.g. cube_holes_od_1
+        are converted to: cube_holes 
+
+    Args:
+        name (String): name of the object
+    """    
+    
+    if len(name) > 6 and ('_od_' in name[-6:]):
+        # it is crow object
+        name = name.split("_od_")[0]
+    
+    return OFFSETS[name]
+
+    try:
+        return OFFSETS[name]
+    except KeyError:
+        print(f"Not found object name: {name}, picking default z offset: 0.1")
+        return 0.1
+
+
 OFFSETS_Z_ROT = {'sugar box': 0.0, 'cracker box': 0.0, 'pudding box': np.pi/2,
 'mustard bottle': 0.0, 'bowl': 0.0, 'potted meat can': np.pi/2,
 'foam brick': 0.0, 'drawer': 0.0, 'mug': 0.0,
-'tomato soup can': 0.0, 'cube': 0.0}
+'tomato soup can': 0.0, 'cube': 0.0,
+'wheel': 0.0,
+'cube_holes': 0.0,
+}
+
+def get_z_offset_rot(name):
+    """Picks predefined offset from the OFFSET_Z_ROT dict
+     - crow object names e.g. cube_holes_od_1
+       are converted to: cube_holes
+
+    Args:
+        name (String): name of the object
+    """    
+    name = name.replace("_"," ")
+
+    if len(name) > 6 and ('_od_' in name[-6:]):
+        # it is crow object
+        name = name.split("_od_")[0]
+
+    try:
+        # OFFSETS_Z_ROT has config data about all object offsets
+        return OFFSETS_Z_ROT[name.replace("_"," ")]
+    except KeyError: # Use simulator
+        print(f"get_quaternion_eef - Not found object name: {name}")
+        return 0.0
+    
 
 NAME2TYPE = {
 # "<name>": "<type>",

@@ -1,31 +1,73 @@
 import rclpy
 from rclpy.node import Node
+import numpy as np
 
-from templates import PickTask
+from imitrob_templates.templates.PickTask import PickTask
 
-
-
+from crow_ontology.crowracle_client import CrowtologyClient
 from imitrob_robot_client.robot_client import RobotActionClient
 from teleop_msgs.msg import Intent
+
+from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
+from context_based_gesture_operation.srcmodules.Objects import Object as Object2
 
 class HRICommandRunner(Node):
     def __init__(self, rosnode_name = 'HRI_runner'):
         super().__init__(rosnode_name)
-        self.robot_client = RobotActionClient(rosnode_name)
+        self.robot_client = RobotActionClient(self)
         self.robot_client.start()
+        
+        self.oc = OntologyClientAdHoc(self)
+        
+        s = self.oc.get_updated_scene()
         
         i = Intent()
         i.target_action = 'seber'
-        i.target_object = 'kostka'
-        
-        oc = OntologyClientAdHoc(self)
+        i.target_object = 'cube_holes_od_0' #s.objects[0].name
         
         task = PickTask()
-        assert task.match(i)
-        task.ground(s=oc.get_objects_from_onto())
+        task.match(i, self.oc.crowracle)
+        #task.ground(s=self.oc.get_objects_from_onto())
+
+        print(self.oc.get_updated_scene())
+        input("check updated scene !")
+        task.ground_realpositions(self.oc.get_updated_scene())
+
         
-        task.execute(mode=1)
+
+        task.execute(self.robot_client, mode=1)
         
+
+    def test_execute_points(self):
+        for z in [0.3, 0.25, 0.2, 0.15, 0.1]:
+            self.robot_client.move_pose(p=[0.5, 0.0, z], q=[1., 0., 0., 0.])
+       
+        print("test_execute_points PASSED")
+        input("now waiting")
+
+    def test_execute_trajectory(self):
+        p, q = [], []
+        for z in [0.3, 0.25, 0.2, 0.15, 0.1]:
+            p.append([0.5, 0.0, z])
+            q.append([1., 0., 0., 0.])
+        self.robot_client.trajectory_pose(p, q)
+
+        print("test_execute_trajectory PASSED")
+        input("now waiting")
+
+    def test_move_gripper(self):
+
+        self.robot_client.close_gripper()
+
+        print("GRIPPER CLOSED")
+        input("now waiting")
+
+        self.robot_client.open_gripper()
+
+        print("GRIPPER OPENED")
+        input("now waiting")
+
+
         
 ''' Just for the test '''
 class OntologyClientAdHoc():
@@ -41,7 +83,7 @@ class OntologyClientAdHoc():
     @staticmethod
     def mocked_update_scene():
         s = None
-        s = cbgo.srcmodules.Scenes.Scene(init='object', random=False)
+        s = Scene2(init='object', random=False)
         sl.scene = s
         return s
 
@@ -51,10 +93,10 @@ class OntologyClientAdHoc():
         
     }
 
-    def update_scene(self):
+    def get_updated_scene(self):
         
         s = None
-        s = cbgo.srcmodules.Scenes.Scene(init='', objects=[], random=False)
+        s = Scene2(init='', objects=[], random=False)
         
         objects = self.get_objects_from_onto()
         ''' object list; item is dictionary containing uri, id, color, color_nlp_name_CZ, EN, nlp_name_CZ, nlp_name_EN; absolute_location'''
@@ -73,6 +115,10 @@ class OntologyClientAdHoc():
             ''' o is dictionary containing properties '''
             uri = object['uri']
             id = object['id']
+
+            # created name `wheel_od_0` extracted from 'http://imitrob.ciirc.cvut.cz/ontologies/crow#wheel_od_0'
+            name = str(object['uri']).split("#")[-1]
+
             color = object['color']
             color_nlp_name_CZ = object['color_nlp_name_CZ']
             color_nlp_name_EN = object['color_nlp_name_EN']
@@ -80,21 +126,19 @@ class OntologyClientAdHoc():
             nlp_name_EN = object['nlp_name_EN']
             absolute_location = object['absolute_location']
             
-            o = cbgo.srcmodules.Objects.Object(name=id, position_real=np.array(absolute_location), random=False)
+            o = Object2(name=name, position_real=np.array(absolute_location), random=False)
             # o.quaternion = np.array(object['pose'][1])
             # o.color_uri = color
             o.color = color_nlp_name_EN
             # o.color_name_CZ = color_nlp_name_CZ
             
-            # o.nlp_name_CZ = nlp_name_CZ
-            # o.nlp_name_EN = nlp_name_EN
-            # o.crow_id = id
-            # o.crow_uri = uri
+            o.nlp_name_CZ = nlp_name_CZ
+            o.nlp_name_EN = nlp_name_EN
+            o.crow_id = id
+            o.crow_uri = uri
             
             s.objects.append(o)
 
-        sl.scene = s
-        # self.get_logger().info(f"scene: {sl.scene}")
         return s
 
     def match_object_in_onto(self, obj):
@@ -147,7 +191,7 @@ class OntologyClientAdHoc():
 def main():
     rclpy.init()
     rosnode = HRICommandRunner()
-    rclpy.spin(rosnode)
+    # rclpy.spin(rosnode)
 
 if __name__ == '__main__':
     main()

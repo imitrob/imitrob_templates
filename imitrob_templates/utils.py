@@ -4,19 +4,14 @@ from spatialmath import UnitQuaternion
 import spatialmath as sm
 
 import numpy as np
-import imitrob_templates.ycb_data
+from imitrob_templates.object_config import get_z_offset_rot
 from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
 
 
 def get_quaternion_eef(q_, name):
     ''' Based on CosyPose, where each object (name) has OFFSET
     '''
-    try:
-        # ycb_data.OFFSETS_Z_ROT has config data about all object offsets
-        offset_z_rot = ycb_data.OFFSETS_Z_ROT[name.replace("_"," ")]
-    except KeyError: # Use simulator
-        print(f"get_quaternion_eef - Not found object name: {name}")
-        offset_z_rot = 0.
+    offset_z_rot = get_z_offset_rot(name)
 
     q = UnitQuaternion([0.0,0.0,1.0,0.0]) # w,x,y,z
     q_2 = UnitQuaternion([q_[3], *q_[0:3]])
