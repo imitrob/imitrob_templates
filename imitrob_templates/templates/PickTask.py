@@ -248,6 +248,10 @@ class PickTask(Template):
     def execute(self, robot_client, mode=1):
         if mode == 1:
             steps = self.blueprint_mode_1(robot_client)
+        elif mode == 2:
+            # use mvae
+            raise Exception()
+            
         else:
             raise Exception(NotImplementedError)
         

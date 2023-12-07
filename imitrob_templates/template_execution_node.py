@@ -1,4 +1,4 @@
-import rclpy
+import rclpy, json
 from rclpy.node import Node
 import numpy as np
 
@@ -10,6 +10,8 @@ from teleop_msgs.msg import Intent, HRICommand
 
 from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
 from context_based_gesture_operation.srcmodules.Objects import Object as Object2
+
+from small_template_factory import create_template
 
 class HRICommandRunnerNode(Node):
     def __init__(self, rosnode_name = 'HRI_runner'):
@@ -25,36 +27,46 @@ class HRICommandRunnerNode(Node):
         
 
         self.hric_sub = self.create_subscription(HRICommand,
-            '/teleop_gesture_toolbox/gesture_sentence_mapped',
+            '/hri/command',
             self.handle_hricommand, 5)
 
 
     def handle_hricommand(self, msg):
 
-        msg.data
-
-        print(msg.data)
-
-
-        return 
+        
+        receivedHRIcommandStringToParse = msg.data[0]
+        receivedHRIcommand_parsed = json.loads(receivedHRIcommandStringToParse)
+        
+        
+        template_names = receivedHRIcommand_parsed['actions']
+        target_action = receivedHRIcommand_parsed['target_action']
+        template_probs = receivedHRIcommand_parsed['action_probs']
+        receivedHRIcommand_parsed['action_timestamp']
+        target_object = receivedHRIcommand_parsed['target_object']
+        object_names = receivedHRIcommand_parsed['objects']
+        object_probs = receivedHRIcommand_parsed['object_probs']
+        receivedHRIcommand_parsed['object_classes']
+        parameters = receivedHRIcommand_parsed['parameters']
 
         i = Intent()
-        i.target_action = 'seber'
-        i.target_object = 'cube_holes_od_0' #s.objects[0].name
+        i.target_action = target_action
+        i.target_object = target_object #'cube_holes_od_0' #s.objects[0].name
         
-        task = PickTask()
-        task.match(i, self.oc.crowracle)
+        # Parameters
+        
+        
+        task = create_template(i.target_action)
+        
+        assert task.match(i, self.oc.crowracle)
         #task.ground(s=self.oc.get_objects_from_onto())
 
         print(self.oc.get_updated_scene())
         input("check updated scene !")
         task.ground_realpositions(self.oc.get_updated_scene())
 
-        
-
         task.execute(self.robot_client, mode=1)
         
-        return something_back
+        return True
 
     # def test_execute_points(self):
     #     for z in [0.3, 0.25, 0.2, 0.15, 0.1]:
@@ -86,15 +98,15 @@ class HRICommandRunnerNode(Node):
     #     input("now waiting")
 
 
-        
+
 ''' Just for the test '''
 class OntologyClientAdHoc():
     def __init__(self, rosnode):
         self.crowracle = CrowtologyClient(node=rosnode)
         self.onto = self.crowracle.onto
         
-        self.add_dummy_cube()
-        self.add_dummy_cube()
+        # self.add_dummy_cube()
+        # self.add_dummy_cube()
         # print(self.get_objects_from_onto())
         print("Ontology Client Ready")
         
