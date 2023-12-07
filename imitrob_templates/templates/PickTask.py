@@ -201,7 +201,7 @@ class PickTask(Template):
 
             robot_client.open_gripper()
             robot_client.move_pose(p, q)
-            input("good?")
+            
             # if not RealRobotConvenience.correction_by_teleop():
             #     return 'q'
             # else:
@@ -222,7 +222,7 @@ class PickTask(Template):
             # if r == 'r': return r
             robot_client.move_pose(p, q)
             robot_client.close_gripper()
-            input("good?")
+            
             # Pragmatic: Pick target_object should have included some time delay
             # time.sleep(2.)
             relevant_data['p'], relevant_data['q'] = p, q
@@ -235,7 +235,6 @@ class PickTask(Template):
             p[2] += self.execution_config_params['move_final_z_offset']
             
             robot_client.move_pose(p, q)
-            input("good?")
             
             return True, relevant_data
 
