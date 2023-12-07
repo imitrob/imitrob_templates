@@ -62,6 +62,36 @@ def get_z_offset_rot(name):
         return 0.0
     
 
+def get_static_properties(name):
+    if len(name) > 6 and ('_od_' in name[-6:]):
+        # it is crow object
+        name = name.split("_od_")[0]
+    
+    properties_dict = {
+    'cube_holes': { 'name': 'box',
+        'size': 0.04, # [m]
+        'roundness-top': 0.9, # [normalized belief rate]
+        'weight': 0.04, # [kg]
+        'contains': 0., # normalized rate being full 
+        'contain_item': False, # how many items contains
+        'types': ['object'],
+        'glued': False
+    },
+    'wheel': { 'name': 'box',
+        'size': 0.05, # [m]
+        'roundness-top': 1.0, # [normalized belief rate]
+        'weight': 0.03, # [kg]
+        'contains': 0., # normalized rate being full 
+        'contain_item': False, # how many items contains
+        'types': ['object'],
+        'glued': False
+    }
+    }
+    
+    return properties_dict[name]
+        
+            
+
 NAME2TYPE = {
 # "<name>": "<type>",
 "master chef can": "object",
