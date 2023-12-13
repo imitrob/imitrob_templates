@@ -90,7 +90,7 @@ class PickTask(Template):
     def tagged_text_to_HRICommand(self, tagged_text):
         pass
     
-    def match(self, tagged_text : Intent, language = 'en', client = None) -> None:
+    def match(self, tagged_text : Intent, language = 'en', client = None) -> bool:
         ''' Checks if given command TaggedText corresponds to this template without checking the current detection
             Checks general classes in ontology (not in real world instances) 
         (Idea: Runs in NLP package and then in modality merger)
@@ -102,7 +102,7 @@ class PickTask(Template):
         self.target_object = tagged_text.target_object
         self.target_action = tagged_text.target_action
 
-        return
+        return True
         od = ObjectDetector(language = language, client = client)
         self.target = od.detect_object(tagged_text)
 
@@ -245,13 +245,52 @@ class PickTask(Template):
 
         return check_preconditions, get_ground_data, move_1, move_2, move_3, check_postconditions
 
-    def execute(self, robot_client, mode=1):
+    def mvae_mode(self, robot_client, mvae):
+
+        def get_ground_data(relevant_data):
+            ''' Gather all information needed to execute the task
+            
+            Returns:
+                parameters e.g. scene_object (object)
+            '''
+            # Here is listed all the data parameters to complete
+            # the Task, e.g. Here single object_name
+            target_object_name = self.target_object
+            
+            # Load target_object using its ID
+            relevant_data = {
+                'target_object': self.scene.get_object_by_name(target_object_name),
+            }
+
+            # Check once again that taget_object is detected
+            assert relevant_data['target_object'] is not None
+
+            # Returns list of grounded data
+            return True, relevant_data
+        
+        def infer(relevant_data, mvae=mvae):
+            target_object = relevant_data['target_object']
+            mvae_cmd = mvae.get_action_from_cmd(json.dumps([{"action_type": self.name}]))
+            joints, execute = mvae.mvae_infer(mvae_cmd, target_object.absolute_location)
+
+            relevant_data = {
+                "traj": joints
+            }
+            return True, relevant_data
+
+        def move(relevant_data):
+            trajectory, gripper = relevant_data["traj"][:-1], relevant_data["traj"][-1]
+            robot_client.trajectory_joint(trajectory, gripper)
+        
+        return get_ground_data, infer, move
+    
+    def execute(self, robot_client, mode=1, **kwargs):
         if mode == 1:
             steps = self.blueprint_mode_1(robot_client)
         elif mode == 2:
             # use mvae
-            raise Exception()
-            
+            # raise Exception()
+            steps = self.mvae_mode(robot_client, kwargs["mvae"])            
         else:
             raise Exception(NotImplementedError)
         

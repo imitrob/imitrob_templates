@@ -22,8 +22,8 @@ class HRICommandRunner(Node):
         s = self.oc.get_updated_scene()
         
         i = Intent()
-        i.target_action = 'seber'
-        i.target_object = 'cube_holes_od_0' #s.objects[0].name
+        i.target_action = 'pick_up'
+        i.target_object = 'cube_holes_od_136' #s.objects[0].name
         
         task = PickTask()
         task.match(i, self.oc.crowracle)
@@ -34,6 +34,10 @@ class HRICommandRunner(Node):
         task.ground_realpositions(self.oc.get_updated_scene())
 
         
+        print("********************")
+        for k, v in task.__dict__.items():
+            print(f"{k}: {v}")
+        print("********************")
 
         task.execute(self.robot_client, mode=1)
         

@@ -19,7 +19,7 @@ def get_z_offset_from_center(name):
         name (String): name of the object
     """    
     
-    if len(name) > 6 and ('_od_' in name[-6:]):
+    if len(name) > 7 and ('_od_' in name[-7:]):
         # it is crow object
         name = name.split("_od_")[0]
     
@@ -50,7 +50,7 @@ def get_z_offset_rot(name):
     """    
     name = name.replace("_"," ")
 
-    if len(name) > 6 and ('_od_' in name[-6:]):
+    if len(name) > 7 and ('_od_' in name[-7:]):
         # it is crow object
         name = name.split("_od_")[0]
 

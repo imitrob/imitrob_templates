@@ -1,5 +1,9 @@
 import rclpy, json
 from rclpy.node import Node
+from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
+                                   ReentrantCallbackGroup)
+from rclpy.executors import MultiThreadedExecutor
+
 import numpy as np
 
 from imitrob_templates.templates.PickTask import PickTask
@@ -23,12 +27,17 @@ class HRICommandRunnerNode(Node):
         
         self.oc = OntologyClientAdHoc(self)
         
+        
         s = self.oc.get_updated_scene()
         
 
         self.hric_sub = self.create_subscription(HRICommand,
             '/hri/command',
-            self.handle_hricommand, 5)
+            self.handle_hricommand, 5, callback_group=MutuallyExclusiveCallbackGroup())
+
+
+        self.scene = s
+        print(self.scene.get_object_by_name('cube_holes_od_0'))
 
 
     def handle_hricommand(self, msg):
@@ -42,6 +51,8 @@ class HRICommandRunnerNode(Node):
         target_action = receivedHRIcommand_parsed['target_action']
         template_probs = receivedHRIcommand_parsed['action_probs']
         receivedHRIcommand_parsed['action_timestamp']
+
+
         target_object = receivedHRIcommand_parsed['target_object']
         object_names = receivedHRIcommand_parsed['objects']
         object_probs = receivedHRIcommand_parsed['object_probs']
@@ -57,12 +68,19 @@ class HRICommandRunnerNode(Node):
         
         task = create_template(i.target_action)
         
-        assert task.match(i, self.oc.crowracle)
+        task.match(i, self.oc.crowracle)
         #task.ground(s=self.oc.get_objects_from_onto())
 
         print(self.oc.get_updated_scene())
         input("check updated scene !")
+        task.target_object = target_object
         task.ground_realpositions(self.oc.get_updated_scene())
+        ## tihs iwll be in grounder
+
+        print("********************")
+        for k, v in task.__dict__.items():
+            print(f"{k}: {v}")
+        print("********************")
 
         task.execute(self.robot_client, mode=1)
         
@@ -212,16 +230,13 @@ class OntologyClientAdHoc():
         self.trajectory_publisher.publish(msg)
         
 
-
-
-
-
-
-
 def main():
     rclpy.init()
+    n_threads = 4 # nr of callbacks in group, +1 as backup
+    mte = MultiThreadedExecutor(num_threads=n_threads, context=rclpy.get_default_context())
+
     rosnode = HRICommandRunnerNode()
-    rclpy.spin(rosnode)
+    rclpy.spin(rosnode, executor=mte)
 
 if __name__ == '__main__':
     main()

@@ -14,6 +14,7 @@ from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
 
 def to_default_name(name, ct='template'):
     name = name.lower()
+    name = name.replace("_", " ")
     assert isinstance(name, str), f"name is not string, it is {type(name)}"
     ct_name_synonyms = eval(ct+'_name_synonyms')
 
