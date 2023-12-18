@@ -1,5 +1,6 @@
 from typing import Dict, Any, Tuple
 import json
+import time
 from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
 import numpy as np
 from copy import deepcopy
@@ -213,26 +214,51 @@ class PickTask(BaseTask):
         def reconstruct_command(relevant_data):
             target_object = relevant_data['target_object']
             action = mvae.get_action_from_cmd(json.dumps([{"action_type": self.name}]))
-            obj = f"{target_object.color} {target_object.name}"
+            obj = f"{target_object.color} {target_object.nlp_name_EN}"
             command = f"{action} the {obj}"
             relevant_data["command"] = command
             print("**************************")
             print(f"Command: {command}")
             print("**************************")
+            return True, relevant_data
 
         def infer(relevant_data, mvae=mvae):
             target_object = relevant_data['target_object']
             command = relevant_data["command"]
-            joints, _ = mvae.mvae_infer(command, target_object.absolute_location)
+            location = target_object.absolute_location
+            location[0] = location[0] - 0.65
+            joints, x = mvae.mvae_infer(command, location)
 
             relevant_data = {
-                "traj": joints
+                "traj": np.array(joints)
             }
             return True, relevant_data
 
         def move(relevant_data):
-            trajectory, gripper = relevant_data["traj"][:-1], relevant_data["traj"][-1]
-            robot_client.trajectory_joint(trajectory, gripper)
+            trajectory = relevant_data["traj"]
+            # trajectory, gripper = relevant_data["traj"][:, :-1], relevant_data["traj"][:, -1]
+            # robot_client.trajectory_joint(trajectory, gripper)
+            #robot_client.trajectory_joint(trajectory)
+            jtraj = []
+            prev_a = 1
+            for a in trajectory:
+                print("Processing data")
+                if (a[-1] > 0 and prev_a > 0) or (a[-1] <0 and prev_a < 0):
+                    jtraj.append(a[:-1])
+                    prev_a = a[-1]
+                else:
+                    print("Execute")
+                    robot_client.trajectory_joint(jtraj)
+                    jtraj = []
+                    prev_a = a[-1]  
+                    if a[-1] > 0:
+                        robot_client.trajectory_joint(trajectory=[], gripper=[False])
+                    else:
+                        robot_client.trajectory_joint(trajectory=[], gripper=[True])
+            if len(jtraj)>0:
+                robot_client.trajectory_joint(jtraj)
+            print("DONE")
+            return True, relevant_data
 
         return self.get_ground_data, reconstruct_command, infer, move
 
