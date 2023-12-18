@@ -79,7 +79,8 @@ class BaseTask(Template):
             return False, f"Error generating steps for task {self.name}!\n{e}"
 
         relevant_data = {}
-        for i, step in enumerate(steps):
+        for i, step in enumerate(steps, start=1):
+            print(f"Running {str(step)}")
             try:
                 ret, relevant_data = step(relevant_data)
             except ValueError as e:
@@ -89,7 +90,9 @@ class BaseTask(Template):
             except BaseException as e:
                 return False, f"Error executing step {i}/{len(steps)} of task {self.name}!\n{e}"
 
-            if not ret:
+            if ret:
+                print(f"Step {i}/{len(steps)} done.")
+            else:
                 return False, f"Step {i}/{len(steps)} of task {self.name} returned False!"
 
         return True, "Success"
