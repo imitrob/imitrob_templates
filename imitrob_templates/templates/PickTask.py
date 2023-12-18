@@ -1,19 +1,21 @@
+from typing import Dict, Any, Tuple
 import json
-from copy import deepcopy
-from typing import Any, Dict, Tuple
-
-import numpy as np
-
-from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
 from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
+import numpy as np
+from copy import deepcopy
 from imitrob_templates.config import PickTaskConfig
 from imitrob_templates.object_config import get_z_offset_from_center
-from imitrob_templates.templates import BaseTask, TaskExecutionMode
+
 from imitrob_templates.utils import get_quaternion_eef
+from imitrob_templates.templates import BaseTask, TaskExecutionMode
 from teleop_msgs.msg import Intent
+
+from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
+from crow_nlp.nlp_crow.database.Ontology import Template
 
 
 class PickTask(BaseTask):
+
     def __init__(self, *args, **kwargs):
         self.n_target_objects = 1
         modes = {
@@ -21,32 +23,31 @@ class PickTask(BaseTask):
             TaskExecutionMode.MVAE: self.mvae_mode
         }
         super().__init__(task_config=PickTaskConfig, modes=modes, *args, **kwargs)
-
+    
     def is_feasible(self, o, s=None):
-        # assert s is None
+        #assert s is None
         assert o is not None
 
-        if (o.properties['reachable']  # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
-            and o.properties['pickable']  # When object is not pickable it cannot be picked at all
-            and not o.properties['glued']):
+        if ( o.properties['reachable'] and  # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
+             o.properties['pickable'] and  # When object is not pickable it cannot be picked at all
+             not o.properties['glued'] ):
             return True
         else:
             return False
-
+        
     ''' There will be function that converts tagged text to HRICommand object '''
     @staticmethod
-    def tagged_text_to_HRICommand(self, tagged_text):
+    def tagged_text_to_HRICommand(tagged_text):
         pass
-    
 
     def match_tagged_text(self, tagged_text : Intent, language = 'en', client = None) -> bool:
         ''' TODO: tagged_text is output from sentence processor
             Checks if given command TaggedText corresponds to this template without checking the current detection
             Checks general classes in ontology (not in real world instances) 
         (Idea: Runs in NLP package and then in modality merger)
-
+        
         Returns:
-            match (Bool):
+            match (Bool): 
         '''
         od = ObjectDetector(language = language, client = client)
         self.target = od.detect_object(tagged_text)
@@ -58,7 +59,7 @@ class PickTask(BaseTask):
         #     matched = True
         # else:
         #     matched = False
-
+            
         # if matched:
         #     return True
         # else:
@@ -81,19 +82,40 @@ class PickTask(BaseTask):
 
         return True
 
-
     def ground(self, language = 'en', client = None):
-        ''' Grounding on the real objects
+        ''' Grounding on the real objects 
         (Runs in Modality Merger)
         '''
+        
+        return
+        self.lang = language
+        self.ui = UserInputManager(language=self.lang)
+        self.guidance_file = self.ui.load_file('guidance_dialogue.json')
+        og = ObjectGrounder(language=self.lang, client=client)
+        if self.target:
+            self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
+            names_to_add = ['target_ph_cls', 'target_ph_color', 'target_ph_loc']
+            for name in names_to_add:
+                if getattr(self, name):
+                    self.parameters.append(name)
 
         return
-
+        # I don't know what will be the format of the scene retrived from the ontology
+        # [{'uri': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#test_CUBE_498551_od_498551'), 'id': 'od_498551', 'color': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#COLOR_GREEN'), 'color_nlp_name_CZ': 'zelená', 'color_nlp_name_EN': 'green', 'nlp_name_CZ': 'kostka', 'nlp_name_EN': 'cube', 'absolute_location': [-0.34157065, 0.15214929, -0.24279054]}]
+        
+        # Finds i.target_object in the ontology objects
+        # Input:
+        '''
+        i.target_object
+        s
+        
+        return s[0] # tmp
+        '''
+    
     def ground_realpositions(self, s):
         self.scene = s
-
-    @staticmethod
-    def get_ground_data(relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
+    
+    def get_ground_data(self, relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         ''' Gather all information needed to execute the task
 
         Args:
@@ -188,10 +210,20 @@ class PickTask(BaseTask):
 
     def mvae_mode(self, robot_client, mvae):
 
+        def reconstruct_command(relevant_data):
+            target_object = relevant_data['target_object']
+            action = mvae.get_action_from_cmd(json.dumps([{"action_type": self.name}]))
+            obj = f"{target_object.color} {target_object.name}"
+            command = f"{action} the {obj}"
+            relevant_data["command"] = command
+            print("**************************")
+            print(f"Command: {command}")
+            print("**************************")
+
         def infer(relevant_data, mvae=mvae):
             target_object = relevant_data['target_object']
-            mvae_cmd = mvae.get_action_from_cmd(json.dumps([{"action_type": self.name}]))
-            joints, _ = mvae.mvae_infer(mvae_cmd, target_object.absolute_location)
+            command = relevant_data["command"]
+            joints, _ = mvae.mvae_infer(command, target_object.absolute_location)
 
             relevant_data = {
                 "traj": joints
@@ -202,9 +234,9 @@ class PickTask(BaseTask):
             trajectory, gripper = relevant_data["traj"][:-1], relevant_data["traj"][-1]
             robot_client.trajectory_joint(trajectory, gripper)
 
-        return self.get_ground_data, infer, move
+        return self.get_ground_data, reconstruct_command, infer, move
 
-
+        
 if __name__ == '__main__':
     task = PickTask()
     print("This is task: ")
