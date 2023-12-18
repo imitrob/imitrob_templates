@@ -41,34 +41,42 @@ class HRICommandRunnerNode(Node):
 
 
     def handle_hricommand(self, msg):
+        """Single HRICommand linked to single Template
 
-        
+        Args:
+            msg (HRICommand): Description of Command to execute
+
+        Returns:
+            bool: Success
+        """        
+
         receivedHRIcommandStringToParse = msg.data[0]
         receivedHRIcommand_parsed = json.loads(receivedHRIcommandStringToParse)
         
-        
-        template_names = receivedHRIcommand_parsed['actions']
+        # Extract data
         target_action = receivedHRIcommand_parsed['target_action']
-        template_probs = receivedHRIcommand_parsed['action_probs']
-        receivedHRIcommand_parsed['action_timestamp']
-
-
         target_object = receivedHRIcommand_parsed['target_object']
-        object_names = receivedHRIcommand_parsed['objects']
-        object_probs = receivedHRIcommand_parsed['object_probs']
-        receivedHRIcommand_parsed['object_classes']
-        parameters = receivedHRIcommand_parsed['parameters']
+        
+        # Possibility to use all data (probabilities, timestamps, etc.)
+        # template_names = receivedHRIcommand_parsed['actions']
+        # template_probs = receivedHRIcommand_parsed['action_probs']
+        # template_timestamps = receivedHRIcommand_parsed['action_timestamp']
+        
+        # object_names = receivedHRIcommand_parsed['objects']
+        # object_probs = receivedHRIcommand_parsed['object_probs']
+        # object_classes = receivedHRIcommand_parsed['object_classes']
+        
+        # parameters = receivedHRIcommand_parsed['parameters']
 
         i = Intent()
         i.target_action = target_action
         i.target_object = target_object #'cube_holes_od_0' #s.objects[0].name
         
-        # Parameters
-        
         
         task = create_template(i.target_action)
         
-        task.match(i, self.oc.crowracle)
+        #task.match_intent(i, self.oc.crowracle)
+        task.match_tagged_text(i, self.oc.get_updated_scene())
         #task.ground(s=self.oc.get_objects_from_onto())
 
         print(self.oc.get_updated_scene())
