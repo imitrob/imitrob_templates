@@ -90,19 +90,16 @@ class PickTask(Template):
     def tagged_text_to_HRICommand(self, tagged_text):
         pass
     
-    def match(self, tagged_text : Intent, language = 'en', client = None) -> bool:
-        ''' Checks if given command TaggedText corresponds to this template without checking the current detection
+
+    def match_tagged_text(self, tagged_text : Intent, language = 'en', client = None) -> bool:
+        ''' TODO: tagged_text is output from sentence processor
+            Checks if given command TaggedText corresponds to this template without checking the current detection
             Checks general classes in ontology (not in real world instances) 
         (Idea: Runs in NLP package and then in modality merger)
         
         Returns:
             match (Bool): 
         '''
-
-        self.target_object = tagged_text.target_object
-        self.target_action = tagged_text.target_action
-
-        return True
         od = ObjectDetector(language = language, client = client)
         self.target = od.detect_object(tagged_text)
 
@@ -118,7 +115,25 @@ class PickTask(Template):
         #     return True
         # else:
         #     return False
+
+    def match_intent(self, intent : Intent, scene) -> bool:
+        ''' Checks general classes in ontology (not in real world instances) 
+        (Idea: Runs in NLP package and then in modality merger)
         
+        Returns:
+            match (Bool): 
+        '''
+
+        # is object on the scene?
+        if scene.get_object_by_name(intent.target_object) is None:
+            return False
+
+        self.target_object = intent.target_object
+        self.target_action = intent.target_action
+
+        return True
+
+
     def ground(self, language = 'en', client = None):
         ''' Grounding on the real objects 
         (Runs in Modality Merger)
