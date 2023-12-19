@@ -17,8 +17,9 @@ OFFSETS = {
 'mustard bottle': 0.095+0.07, 'bowl': 0.05, 'potted meat can': 0.02, 'foam brick': 0.0,
 'tomato soup can': 0.03, 'drawer': 0.3, 'mug': 0.03, 'cube': 0.02,
 'wheel': 0.01,
-'cube_holes': 0.02,
-'test_CUBE': 0.02,
+'cube holes': 0.01,
+'cube': 0.01,
+'test_CUBE': 0.01,
 }
 
 def get_z_offset_from_center(name):
@@ -29,7 +30,8 @@ def get_z_offset_from_center(name):
     Args:
         name (String): name of the object
     """    
-    return OFFSETS[to_default_name(name)]
+    
+    name = to_default_name(name)
 
     try:
         return OFFSETS[name]
@@ -56,9 +58,11 @@ def get_z_offset_rot(name):
         name (String): name of the object
     """    
 
+    name = to_default_name(name)
+
     try:
         # OFFSETS_Z_ROT has config data about all object offsets
-        return OFFSETS_Z_ROT[to_default_name(name)]
+        return OFFSETS_Z_ROT[name]
     except KeyError: # Use simulator
         print(f"get_quaternion_eef - Not found object name: {name}")
         return 0.0

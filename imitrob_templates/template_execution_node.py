@@ -14,6 +14,7 @@ from teleop_msgs.msg import Intent, HRICommand
 
 from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
 from context_based_gesture_operation.srcmodules.Objects import Object as Object2
+from imitrob_templates.templates.BaseTask import TaskExecutionMode
 
 from small_template_factory import create_template
 
@@ -39,6 +40,7 @@ class HRICommandRunnerNode(Node):
         self.scene = s
         print(self.scene.get_object_by_name('cube_holes_od_0'))
 
+        print("Done")
 
     def handle_hricommand(self, msg):
         """Single HRICommand linked to single Template
@@ -48,7 +50,8 @@ class HRICommandRunnerNode(Node):
 
         Returns:
             bool: Success
-        """        
+        """
+        print("handle_hricommand started")
 
         receivedHRIcommandStringToParse = msg.data[0]
         receivedHRIcommand_parsed = json.loads(receivedHRIcommandStringToParse)
@@ -72,11 +75,11 @@ class HRICommandRunnerNode(Node):
         i.target_action = target_action
         i.target_object = target_object #'cube_holes_od_0' #s.objects[0].name
         
-        
         task = create_template(i.target_action)
         
+        
         #task.match_intent(i, self.oc.crowracle)
-        task.match_tagged_text(i, self.oc.get_updated_scene())
+        task.match_intent(i, self.oc.get_updated_scene())
         #task.ground(s=self.oc.get_objects_from_onto())
 
         print(self.oc.get_updated_scene())
@@ -90,7 +93,7 @@ class HRICommandRunnerNode(Node):
             print(f"{k}: {v}")
         print("********************")
 
-        task.execute(self.robot_client, mode=1)
+        task.execute(self.robot_client, mode=TaskExecutionMode.BASIC)
         
         return True
 
@@ -240,7 +243,7 @@ class OntologyClientAdHoc():
 
 def main():
     rclpy.init()
-    n_threads = 4 # nr of callbacks in group, +1 as backup
+    n_threads = 20 # nr of callbacks in group, +1 as backup
     mte = MultiThreadedExecutor(num_threads=n_threads, context=rclpy.get_default_context())
 
     rosnode = HRICommandRunnerNode()
