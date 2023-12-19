@@ -8,7 +8,7 @@ import numpy as np
 from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
 from context_based_gesture_operation.srcmodules.Objects import Object as Object2
 
-from imitrob_hri.data.datagen_utils import Object3, Scene3
+from imitrob_hri.data.scene3_def import Object3, Scene3
 from imitrob_templates.object_config import get_static_properties
 
 class SceneOntologyClient():
@@ -18,6 +18,19 @@ class SceneOntologyClient():
         
         print("Ontology Client Ready")
         
+    
+    def add_dummy_cube(self):
+        o_list = self.get_objects_from_onto()
+        if len(o_list) == 0:
+           print("Adding a dummy cube into ontology")
+           self.crowracle.add_test_object("CUBE")    
+    
+    def get_objects_from_onto(self):
+        o_list = self.crowracle.getTangibleObjectsProps()
+        #print("Onto objects:")
+        #print(o_list)
+        return o_list
+    
     @staticmethod
     def mocked_update_scene():
         s = None

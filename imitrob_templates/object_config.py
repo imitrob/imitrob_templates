@@ -1,13 +1,24 @@
 import numpy as np
 
+def to_default_name(name):
+    if 'test_CUBE' in name:
+        return 'cube_holes'
     
+    if '_od_' in name: # it is crow object
+        name = name.split("_od_")[0]
+        
+    name = name.replace("_"," ")
+        
+    return name
 
 
-OFFSETS = {'sugar box': 0.085+0.04, 'cracker box': 0.107+0.03, 'pudding box': 0.045+0.07,
+OFFSETS = {
+'sugar box': 0.085+0.04, 'cracker box': 0.107+0.03, 'pudding box': 0.045+0.07,
 'mustard bottle': 0.095+0.07, 'bowl': 0.05, 'potted meat can': 0.02, 'foam brick': 0.0,
 'tomato soup can': 0.03, 'drawer': 0.3, 'mug': 0.03, 'cube': 0.02,
 'wheel': 0.01,
 'cube_holes': 0.02,
+'test_CUBE': 0.02,
 }
 
 def get_z_offset_from_center(name):
@@ -18,12 +29,7 @@ def get_z_offset_from_center(name):
     Args:
         name (String): name of the object
     """    
-    
-    if len(name) > 7 and ('_od_' in name[-7:]):
-        # it is crow object
-        name = name.split("_od_")[0]
-    
-    return OFFSETS[name]
+    return OFFSETS[to_default_name(name)]
 
     try:
         return OFFSETS[name]
@@ -32,7 +38,8 @@ def get_z_offset_from_center(name):
         return 0.1
 
 
-OFFSETS_Z_ROT = {'sugar box': 0.0, 'cracker box': 0.0, 'pudding box': np.pi/2,
+OFFSETS_Z_ROT = {
+'sugar box': 0.0, 'cracker box': 0.0, 'pudding box': np.pi/2,
 'mustard bottle': 0.0, 'bowl': 0.0, 'potted meat can': np.pi/2,
 'foam brick': 0.0, 'drawer': 0.0, 'mug': 0.0,
 'tomato soup can': 0.0, 'cube': 0.0,
@@ -48,47 +55,49 @@ def get_z_offset_rot(name):
     Args:
         name (String): name of the object
     """    
-    name = name.replace("_"," ")
-
-    if len(name) > 7 and ('_od_' in name[-7:]):
-        # it is crow object
-        name = name.split("_od_")[0]
 
     try:
         # OFFSETS_Z_ROT has config data about all object offsets
-        return OFFSETS_Z_ROT[name.replace("_"," ")]
+        return OFFSETS_Z_ROT[to_default_name(name)]
     except KeyError: # Use simulator
         print(f"get_quaternion_eef - Not found object name: {name}")
         return 0.0
     
 
 def get_static_properties(name):
-    if len(name) > 6 and ('_od_' in name[-6:]):
-        # it is crow object
-        name = name.split("_od_")[0]
+    """These are constant and defined based on real object
+
+    Args:
+        name (Str): Object name
+
+    Returns:
+        dict: static_properties
+    """    
     
     properties_dict = {
-    'cube_holes': { 'name': 'box',
-        'size': 0.04, # [m]
-        'roundness-top': 0.9, # [normalized belief rate]
-        'weight': 0.04, # [kg]
-        'contains': 0., # normalized rate being full 
-        'contain_item': False, # how many items contains
-        'types': ['object'],
-        'glued': False
-    },
-    'wheel': { 'name': 'box',
-        'size': 0.05, # [m]
-        'roundness-top': 1.0, # [normalized belief rate]
-        'weight': 0.03, # [kg]
-        'contains': 0., # normalized rate being full 
-        'contain_item': False, # how many items contains
-        'types': ['object'],
-        'glued': False
-    }
+        'cube_holes': { 
+            'name': 'box',
+            'size': 0.04, # [m]
+            'roundness-top': 0.9, # [normalized belief rate]
+            'weight': 0.04, # [kg]
+            'contains': 0., # normalized rate being full 
+            'contain_item': False, # how many items contains
+            'types': ['object'],
+            'glued': False
+        },
+        'wheel': { 
+            'name': 'box',
+            'size': 0.05, # [m]
+            'roundness-top': 1.0, # [normalized belief rate]
+            'weight': 0.03, # [kg]
+            'contains': 0., # normalized rate being full 
+            'contain_item': False, # how many items contains
+            'types': ['object'],
+            'glued': False
+        }
     }
     
-    return properties_dict[name]
+    return properties_dict[to_default_name(name)]
         
             
 
