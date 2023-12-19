@@ -214,6 +214,8 @@ class PickTask(BaseTask):
         def reconstruct_command(relevant_data):
             target_object = relevant_data['target_object']
             action = mvae.get_action_from_cmd(json.dumps([{"action_type": self.name}]))
+            # action = "pass me"
+
             obj = f"{target_object.color} {target_object.nlp_name_EN}"
             command = f"{action} the {obj}"
             relevant_data["command"] = command
@@ -226,7 +228,7 @@ class PickTask(BaseTask):
             target_object = relevant_data['target_object']
             command = relevant_data["command"]
             location = target_object.absolute_location
-            location[0] = location[0] - 0.65
+            location[0] = location[0] - 0.62
             joints, x = mvae.mvae_infer(command, location)
 
             relevant_data = {
