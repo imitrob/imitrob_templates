@@ -66,22 +66,6 @@ class PickTask(BaseTask):
         # else:
         #     return False
 
-    def match_intent(self, intent : Intent, scene) -> bool:
-        ''' Checks general classes in ontology (not in real world instances) 
-        (Idea: Runs in NLP package and then in modality merger)
-        
-        Returns:
-            match (Bool): 
-        '''
-
-        # is object on the scene?
-        if scene.get_object_by_name(intent.target_object) is None:
-            return False
-
-        self.target_object = intent.target_object
-        self.target_action = intent.target_action
-
-        return True
 
     def ground(self, language = 'en', client = None):
         ''' Grounding on the real objects 
@@ -112,9 +96,6 @@ class PickTask(BaseTask):
         
         return s[0] # tmp
         '''
-    
-    def ground_realpositions(self, s):
-        self.scene = s
     
     def get_ground_data(self, relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         ''' Gather all information needed to execute the task

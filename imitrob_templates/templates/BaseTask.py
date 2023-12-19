@@ -2,7 +2,8 @@ import enum
 from typing import Any, Callable, Tuple
 
 from crow_nlp.nlp_crow.database.Ontology import Template
-
+from teleop_msgs.msg import Intent
+from imitrob_hri.imitrob_nlp.nlp_utils import to_default_name
 
 class TaskExecutionMode(enum.Enum):
     UNDEF = 0  # default value, should rise error
@@ -15,7 +16,7 @@ class BaseTask(Template):
     def __init__(self, task_config: dict[str, Any], modes: dict[TaskExecutionMode, Callable]):
         self.task_config = task_config
 
-        self.name = task_config['name']
+        self.name = to_default_name(task_config['name'])
         self.id = task_config['id']
         self.pars_compulsary = task_config['pars_compulsary']
         self.pars_voluntary = task_config['pars_voluntary']
@@ -61,6 +62,9 @@ class BaseTask(Template):
             return True
         else:
             return False
+        
+    def ground_realpositions(self, s):
+        self.scene = s
 
     def task_property_penalization_target_objects(self, property):
         ''' How much to penalize for given property - weighted
@@ -96,3 +100,40 @@ class BaseTask(Template):
                 return False, f"Step {i}/{len(steps)} of task {self.name} returned False!"
 
         return True, "Success"
+
+    @property
+    def target_action(self):
+        ''' alias for self.name: target_action is name of template '''
+        return self.name
+    
+    @target_action.setter
+    def target_action(self, name):
+        ''' target_action is self.name: name of this action '''
+        if name == '':
+            return
+        elif name != self.name:
+            raise Exception("Setting target_action is not same as created action template")
+        else:
+            return
+    
+
+    def match_intent(self, intent : Intent, scene) -> bool:
+        ''' Same for all tasks
+            Checks general classes in ontology (not in real world instances) 
+        (Idea: Runs in NLP package and then in modality merger)
+        
+        Returns:
+            match (Bool): 
+        '''
+
+        # is object on the scene?
+        if scene.get_object_by_name(intent.target_object) is None:
+            return False
+        # target_action must be name of template
+        if self.name != to_default_name(intent.target_action):
+            return False
+
+        self.target_object = intent.target_object
+
+        return True
+    
