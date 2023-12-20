@@ -1,12 +1,10 @@
 import rclpy, json
 from rclpy.node import Node
-from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
-                                   ReentrantCallbackGroup)
-from rclpy.executors import MultiThreadedExecutor
+#from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
+#                                   ReentrantCallbackGroup)
+#from rclpy.executors import MultiThreadedExecutor
 
 import numpy as np
-
-from imitrob_templates.templates.PickTask import PickTask
 
 from crow_ontology.crowracle_client import CrowtologyClient
 from imitrob_robot_client.robot_client import RobotActionClient
@@ -15,32 +13,32 @@ from teleop_msgs.msg import Intent, HRICommand
 from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
 from context_based_gesture_operation.srcmodules.Objects import Object as Object2
 from imitrob_templates.templates.BaseTask import TaskExecutionMode
-
-from small_template_factory import create_template
+from imitrob_templates.small_template_factory import create_template
 
 class HRICommandRunnerNode(Node):
     def __init__(self, rosnode_name = 'HRI_runner'):
         super().__init__(rosnode_name)
-
         
         self.robot_client = RobotActionClient(self)
         self.robot_client.start()
         
         self.oc = OntologyClientAdHoc(self)
         
-        
         s = self.oc.get_updated_scene()
-        
 
+        self.hricommand_queue = []
         self.hric_sub = self.create_subscription(HRICommand,
             '/hri/command',
-            self.handle_hricommand, 5, callback_group=MutuallyExclusiveCallbackGroup())
+            self.add_to_queue, 5) #, callback_group=MutuallyExclusiveCallbackGroup())
 
 
         self.scene = s
         print(self.scene.get_object_by_name('cube_holes_od_0'))
 
         print("Done")
+
+    def add_to_queue(self, msg):
+        self.hricommand_queue.append(msg)
 
     def handle_hricommand(self, msg):
         """Single HRICommand linked to single Template
@@ -75,15 +73,15 @@ class HRICommandRunnerNode(Node):
         i.target_action = target_action
         i.target_object = target_object #'cube_holes_od_0' #s.objects[0].name
         
+
         task = create_template(i.target_action)
-        
+        if task is None: return # template not found; quitting
         
         #task.match_intent(i, self.oc.crowracle)
         task.match_intent(i, self.oc.get_updated_scene())
         #task.ground(s=self.oc.get_objects_from_onto())
 
         print(self.oc.get_updated_scene())
-        input("check updated scene !")
         task.target_object = target_object
         task.ground_realpositions(self.oc.get_updated_scene())
         ## tihs iwll be in grounder
@@ -95,37 +93,8 @@ class HRICommandRunnerNode(Node):
 
         task.execute(self.robot_client, mode=TaskExecutionMode.BASIC)
         
-        return True
-
-    # def test_execute_points(self):
-    #     for z in [0.3, 0.25, 0.2, 0.15, 0.1]:
-    #         self.robot_client.move_pose(p=[0.5, 0.0, z], q=[1., 0., 0., 0.])
-       
-    #     print("test_execute_points PASSED")
-    #     input("now waiting")
-
-    # def test_execute_trajectory(self):
-    #     p, q = [], []
-    #     for z in [0.3, 0.25, 0.2, 0.15, 0.1]:
-    #         p.append([0.5, 0.0, z])
-    #         q.append([1., 0., 0., 0.])
-    #     self.robot_client.trajectory_pose(p, q)
-
-    #     print("test_execute_trajectory PASSED")
-    #     input("now waiting")
-
-    # def test_move_gripper(self):
-
-    #     self.robot_client.close_gripper()
-
-    #     print("GRIPPER CLOSED")
-    #     input("now waiting")
-
-    #     self.robot_client.open_gripper()
-
-    #     print("GRIPPER OPENED")
-    #     input("now waiting")
-
+        print("handle_hricommand ended")
+        
 
 
 ''' Just for the test '''
@@ -244,10 +213,15 @@ class OntologyClientAdHoc():
 def main():
     rclpy.init()
     n_threads = 20 # nr of callbacks in group, +1 as backup
-    mte = MultiThreadedExecutor(num_threads=n_threads, context=rclpy.get_default_context())
+    #mte = MultiThreadedExecutor(num_threads=n_threads, context=rclpy.get_default_context())
 
     rosnode = HRICommandRunnerNode()
-    rclpy.spin(rosnode, executor=mte)
+    while rclpy.ok():
+        rclpy.spin_once(rosnode) #, executor=mte)
+        # check new execution
+        if len(rosnode.hricommand_queue) > 0:
+            msg = rosnode.hricommand_queue.pop(0)
+            rosnode.handle_hricommand(msg)
 
 if __name__ == '__main__':
     main()

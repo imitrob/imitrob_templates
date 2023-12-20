@@ -53,17 +53,11 @@ class ReleaseTask(BaseTask):
         Returns:
             A tuple containing a boolean value indicating success and the relevant data
         '''
-        # Here is listed all the data parameters to complete
-        # the Task, e.g. Here single object_name
-        target_object_name: str = self.target_object
 
         # Load target_object using its ID
         relevant_data: Dict[str, Any] = {
             'free_space': self.scene.position_real(self.scene.get_random_position_in_scene()),
         }
-
-        # Check once again that taget_object is detected
-        assert relevant_data['target_object'] is not None
 
         # Returns list of grounded data
         return True, relevant_data
@@ -83,7 +77,11 @@ class ReleaseTask(BaseTask):
             free_space = relevant_data['free_space']
             ''' Move to free space '''
             p = deepcopy(np.array(free_space))
-            robot_client.move_pose(p)
+            q = np.array([1.,0.,0.,0.])
+            p[2] += self.execution_config_params['free_space_z_offset']
+            
+            robot_client.move_pose(p, q)
+            robot_client.open_gripper()
 
             return True, relevant_data
 

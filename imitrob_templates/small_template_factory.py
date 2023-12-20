@@ -22,12 +22,14 @@ def to_default_name(name, ct='template'):
         for item in ct_name_synonyms[key]:
             if name == item.lower():
                 return ct_name_synonyms[key][0]
-    raise Exception(f"Exception for {name} not in {ct_name_synonyms}")
-
+    print(f"Exception for {name} not in {ct_name_synonyms}")
+    print("returning")
 
 def create_template(template_name):
     template_name = to_default_name(template_name)
-    
+    if template_name is None:
+        return
+
     return {
     'stop': StopTask(),
     'release': ReleaseTask(),

@@ -82,13 +82,11 @@ ReleaseTaskConfig = {
         'pushable':    1.0, 
         'full-stack':  1.0, 
         'full-liquid': 1.0,
-        'glued':       0.0,
+        'glued':       1.0,
         },
     # hard requirements
     'requirements': {'+': [], '-': []},
     'execution_config_params': {
-        'move_near_z_offset': 0.1,
-        'move_final_z_offset': 0.04,
-        'pass_to_position': [0.5, 0.2, 0.3]
+        'free_space_z_offset': 0.05,
     }
 }

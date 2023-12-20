@@ -33,10 +33,10 @@ def get_z_offset_from_center(name):
     
     name = to_default_name(name)
 
-    try:
+    if name in OFFSETS:
         return OFFSETS[name]
-    except KeyError:
-        print(f"Not found object name: {name}, picking default z offset: 0.1")
+    else:
+        print(f"WARNING: get_z_offset_from_center(): Not found object name: {name}")
         return 0.1
 
 
@@ -60,11 +60,11 @@ def get_z_offset_rot(name):
 
     name = to_default_name(name)
 
-    try:
+    if name in OFFSETS_Z_ROT:
         # OFFSETS_Z_ROT has config data about all object offsets
         return OFFSETS_Z_ROT[name]
-    except KeyError: # Use simulator
-        print(f"get_quaternion_eef - Not found object name: {name}")
+    else: # Use simulator
+        print(f"WARNING: get_quaternion_eef(): Not found object name: {name}")
         return 0.0
     
 
@@ -100,9 +100,13 @@ def get_static_properties(name):
             'glued': False
         }
     }
+
+    if name in properties_dict:
+        return properties_dict[to_default_name(name)] 
+    else:
+        print(f"WARNING: get_static_properties(): Not found object name: {name}")
+        return properties_dict['cube_holes'] 
     
-    return properties_dict[to_default_name(name)]
-        
             
 
 NAME2TYPE = {

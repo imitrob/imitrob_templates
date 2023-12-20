@@ -139,7 +139,8 @@ class PickTask(BaseTask):
 
             p[2] += self.execution_config_params['move_near_z_offset']
             # Get Robot EEF rotation from object orientation
-            q = np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN))
+            #q = np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN))
+            q = np.array([1.,0.,0.,0.])
 
             # Checks if target position is correct
             # r = RealRobotConvenience.check_or_return(p, q)
