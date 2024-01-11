@@ -147,6 +147,8 @@ class PassTask(BaseTask):
         raise Exception("TODO")
 
 
+    def mvae_mode(self):
+        raise NotImplementedError()
         
 if __name__ == '__main__':
     task = PassTask()

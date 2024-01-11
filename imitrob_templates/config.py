@@ -1,8 +1,9 @@
 
 
 PickTaskConfig = {
-    'id': 80,
+    'id': 1,
     'name': 'pick',
+    # 'synonyms': ['pick', 'PICK_TASK', 'PickTask', 'pick up', 'lift', 'use', 'pick-up'],
     'pars_compulsary': ['target_action', 'target_object'],
     'pars_voluntary': [],
     # inverted soft-requirements
@@ -15,17 +16,21 @@ PickTaskConfig = {
         'full-liquid':1.0,
         'glued':     0.0, # When the object is glued it cannot be picked
         },
+    'target_storage_penalization': {},
     # hard requirements
     'requirements': {'+': ['reachable', 'pickable'], '-': ['glued']},
     'execution_config_params': {
         'move_near_z_offset': 0.1,
         'move_final_z_offset': 0.04,
-    }
+    },
+    
+    'mm_pars_compulsary': ['template', 'selections'],
 }
 
 PointTaskConfig = {
-    'id': 64,
+    'id': 2,
     'name': 'point',
+    # 'synonyms': ['point', 'POINT_TASK', 'PointTask'],
     'pars_compulsary': ['target_action', 'target_object'],
     'pars_voluntary': [],
     # inverted soft-requirements
@@ -38,16 +43,20 @@ PointTaskConfig = {
         'full-liquid': 1.0,
         'glued':       1.0,
         },
+    'target_storage_penalization': {},
     # hard requirements
     'requirements': {'+': ['reachable'], '-': []},
     'execution_config_params': {
         'move_near_z_offset': 0.25,
-    }
+    },
+    
+    'mm_pars_compulsary': ['template', 'selections'],
 }
 
 PassTaskConfig = {
-    'id': 81,
+    'id': 3,
     'name': 'point',
+    # 'synonyms': ['pass', 'pass me', 'give me', 'bring', 'need', 'pass-me'],
     'pars_compulsary': ['target_action', 'target_object'],
     'pars_voluntary': [],
     # inverted soft-requirements
@@ -60,20 +69,25 @@ PassTaskConfig = {
         'full-liquid': 1.0,
         'glued':       0.0,
         },
+    'target_storage_penalization': {},
     # hard requirements
     'requirements': {'+': ['reachable', 'pickable'], '-': ['glued']},
     'execution_config_params': {
         'move_near_z_offset': 0.1,
         'move_final_z_offset': 0.04,
         'pass_to_position': [0.5, 0.2, 0.3]
-    }
+    },
+    
+    'mm_pars_compulsary': ['template', 'selections'],
 }
 
 ReleaseTaskConfig = {
-    'id': 128,
+    'id': 4,
     'name': 'release',
+    # 'synonyms': ['release', 'place', 'put down'],
     'pars_compulsary': ['target_action'],
     'pars_voluntary': [],
+    
     # inverted soft-requirements
     'target_object_penalization': {
         'reachable':   1.0,
@@ -84,9 +98,56 @@ ReleaseTaskConfig = {
         'full-liquid': 1.0,
         'glued':       1.0,
         },
+    'target_storage_penalization': {},
     # hard requirements
     'requirements': {'+': [], '-': []},
     'execution_config_params': {
         'free_space_z_offset': 0.05,
-    }
+    },
+    
+    'mm_pars_compulsary': ['template'],
+}
+
+
+
+
+PourTaskConfig = {
+    
+    'pars_compulsary': ['target_action', 'target_object', 'target_storage'],
+    'pars_voluntary': [],
+    
+    # 'synonyms': ['pour', 'pour into'],
+    'mm_pars_compulsary': ['template', 'selections', 'storages'],
+}
+
+StopTaskConfig = {
+    'id': 0,
+    'name': 'stop',
+    'pars_compulsary': ['target_action'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': [], '-': []},
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template'],
+}
+
+MoveUpTaskConfig = {
+    'id': 11,
+    'name': 'move-up',
+    'pars_compulsary': ['target_action'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': [], '-': []},
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template'],
 }

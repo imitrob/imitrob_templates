@@ -46,7 +46,7 @@ OFFSETS_Z_ROT = {
 'foam brick': 0.0, 'drawer': 0.0, 'mug': 0.0,
 'tomato soup can': 0.0, 'cube': 0.0,
 'wheel': 0.0,
-'cube_holes': 0.0,
+'cube holes': 0.0,
 }
 
 def get_z_offset_rot(name):
@@ -79,7 +79,7 @@ def get_static_properties(name):
     """    
     
     properties_dict = {
-        'cube_holes': { 
+        'cube holes': { 
             'name': 'box',
             'size': 0.04, # [m]
             'roundness-top': 0.9, # [normalized belief rate]
@@ -101,11 +101,13 @@ def get_static_properties(name):
         }
     }
 
+    name = to_default_name(name)
+
     if name in properties_dict:
-        return properties_dict[to_default_name(name)] 
+        return properties_dict[name] 
     else:
         print(f"WARNING: get_static_properties(): Not found object name: {name}")
-        return properties_dict['cube_holes'] 
+        return properties_dict['cube holes'] 
     
             
 

@@ -1,11 +1,11 @@
 class PushTask():
     def __init__(self):
         self.name = 'push'
-        self.compare_types = ['template', 'selections']
+        self.mm_pars_compulsary = ['template', 'selections']
         self.complexity = 1
 
     def has_compare_type(self, compare_type):
-        if compare_type in self.compare_types:
+        if compare_type in self.mm_pars_compulsary:
             return True
         else:
             return False

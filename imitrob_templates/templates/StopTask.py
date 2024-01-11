@@ -1,24 +1,18 @@
-class StopTask():
-    def __init__(self):
-        self.name = 'stop'
-        self.compare_types = ['template']
-        self.complexity = 0
 
-    def has_compare_type(self, compare_type):
-        if compare_type in self.compare_types:
-            return True
-        else:
-            return False
+from imitrob_templates.templates.BaseTask import BaseTask
+from imitrob_templates.config import StopTaskConfig
 
+class StopTask(BaseTask):
+    def __init__(self, *args, **kwargs):
+        self.n_target_objects = 0
+        modes = {
+            # TaskExecutionMode.BASIC: self.blueprint_mode_1,
+            # TaskExecutionMode.MVAE: self.mvae_mode
+        }
+        super().__init__(task_config=StopTaskConfig, modes=modes, *args, **kwargs)
+    
     def task_property_penalization(self, property):
         raise Exception("Should not have properties")
-        return {'reachable': 1.0,
-                'pickable':  1.0, 
-                'stackable': 1.0,
-                'pushable':  1.0, 
-                'full':      1.0,
-                'glued':     1.0,
-            }[property]
 
     def is_feasible(self, o=None, s=None):
         #assert o is None

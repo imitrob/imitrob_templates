@@ -4,11 +4,11 @@ import logging
 class StackTask():
     def __init__(self):
         self.name = 'stack'
-        self.compare_types = ['template', 'selections', 'storages']
+        self.mm_pars_compulsary = ['template', 'selections', 'storages']
         self.complexity = 2
 
     def has_compare_type(self, compare_type):
-        if compare_type in self.compare_types:
+        if compare_type in self.mm_pars_compulsary:
             return True
         else:
             return False
