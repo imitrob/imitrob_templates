@@ -36,6 +36,7 @@ class BaseTask(Template):
 
         self._modes = modes
 
+    ''' Need to be done externally 
         self.create_subscribtion(FrankaState, '/robot_state', self.franka_state_clb, 5)
         self.get_last_state_flag = False
         self.last_state = None
@@ -56,7 +57,7 @@ class BaseTask(Template):
         if self.get_last_state_flag:
             self.last_state = msg
             self.get_last_state_flag = False
-
+    '''
     def get_all_filled_voluntary_parameters(self):
         # TODO:
         return self.pars_voluntary

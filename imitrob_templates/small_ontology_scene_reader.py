@@ -95,6 +95,15 @@ class SceneOntologyClient():
     def get_scene3(self):
         
         objects = self.crowracle.getTangibleObjectsProps()
+        
+        # testing if object timestamp changes 
+        # import time
+        # while True:
+        #     time.sleep(0.5)
+        #     res = self.onto.query(self.crowracle._query_check_time_enable_disable)
+        #     print([(g["obj"], g["stamp"], g["enabled"].toPython()) for g in res])
+
+        print(objects)
         ''' object list; item is dictionary containing uri, id, color, color_nlp_name_CZ, EN, nlp_name_CZ, nlp_name_EN; absolute_location'''
 
         '''
@@ -170,6 +179,7 @@ if __name__ == '__main__':
     s3 = soc.get_scene3()
     print("Scene 3")
     print(f"{s3}")
+    print("Done")
     rclpy.spin(rosnode)
     
     
