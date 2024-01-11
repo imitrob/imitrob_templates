@@ -1,10 +1,12 @@
-import enum
+import enum, time
 from typing import Any, Callable, Tuple
 
 from crow_nlp.nlp_crow.database.Ontology import Template
 from teleop_msgs.msg import Intent
 from imitrob_hri.imitrob_nlp.nlp_utils import to_default_name
 from copy import deepcopy
+
+from imitrob_common_interfaces.msg import FrankaState
 
 class TaskExecutionMode(enum.Enum):
     UNDEF = 0  # default value, should rise error
@@ -38,6 +40,27 @@ class BaseTask(Template):
         
         self.mm_pars_compulsary = task_config['mm_pars_compulsary']
         
+
+        self.create_subscribtion(FrankaState, '/robot_state', self.franka_state_clb, 5)
+        self.get_last_state_flag = False
+        self.last_state = None
+
+    def check_grasped(self):            
+        # wait for the lastest franka state
+        self.get_last_state_flag = True
+        i = 0
+        while self.last_state is None:
+            i += 1
+            time.sleep(0.05)
+            if i > 1000:
+                print("Franka state not received!")
+
+        return self.last_state['grasped'] # check 'grasped' is the key
+
+    def franka_state_clb(self, msg):
+        if self.get_last_state_flag:
+            self.last_state = msg
+            self.get_last_state_flag = False
 
     def get_all_filled_voluntary_parameters(self):
         # TODO:

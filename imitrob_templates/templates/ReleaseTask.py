@@ -51,7 +51,7 @@ class ReleaseTask(BaseTask):
 
         # Load target_object using its ID
         relevant_data: Dict[str, Any] = {
-            'free_space': self.scene.position_real(self.scene.get_random_position_in_scene()),
+            'free_space': self.scene.position_real(self.scene.get_random_position_in_scene2()),
         }
 
         # Returns list of grounded data

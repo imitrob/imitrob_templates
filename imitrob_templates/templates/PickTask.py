@@ -185,7 +185,8 @@ class PickTask(BaseTask):
             return True, relevant_data
 
         def check_postconditions(relevant_data):
-            # if check_grasped(): return False
+
+            if self.check_grasped(): return False
 
             return True, relevant_data
 

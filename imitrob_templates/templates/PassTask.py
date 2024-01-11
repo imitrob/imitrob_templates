@@ -144,6 +144,10 @@ class PassTask(BaseTask):
         return check_preconditions, self.get_ground_data, move_1, move_2, move_3, move_4, check_postconditions
 
     def mvae_mode(self):
+        raise Exception("TODO")
+
+
+    def mvae_mode(self):
         raise NotImplementedError()
         
 if __name__ == '__main__':

@@ -13,35 +13,29 @@ class PublishHRICommand(Node):
 
         self.soc = SceneOntologyClient(self)
 
-def main():
-    rclpy.init()
-    rosnode = PublishHRICommand()
-    
-    print("This is imitrob_template tester")
-    print("- This exmaple uses crow object cube_holes!")
 
-    while True:
-        target_action = str(input("Enter task name: "))
 
-        if target_action not in ['release']:
-            print("Need to ground scene object:")
+def run_template(rosnode, target_action):
 
-            scene = rosnode.soc.get_scene2()
-            target_object = None
-            for o_name in scene.O:
-                if 'cube_holes' in o_name: # e.g.: 'cube_holes_od_0'
-                    target_object = o_name
-                    break
-            if target_object is None:
-                print("cube (cube_holes) not found on the scene! Waiting and trying again")
-                time.sleep(5)
-                continue
-            else:
-                print(f"cube chosen ({target_object})")
+    if target_action not in ['release']:
+        print("Need to ground scene object:")
 
+        scene = rosnode.soc.get_scene2()
+        target_object = None
+        for o_name in scene.O:
+            if 'cube_holes' in o_name: # e.g.: 'cube_holes_od_0'
+                target_object = o_name
+                break
+        if target_object is None:
+            print("cube (cube_holes) not found on the scene! Waiting and trying again")
+            time.sleep(5)
+            return
         else:
-            print("Don't need to ground scene object")
-            target_object = ''
+            print(f"cube chosen ({target_object})")
+
+    else:
+        print("Don't need to ground scene object")
+        target_object = ''
 
         msg_to_send = HRICommand()
         s = "{'target_action': '" + target_action + "', 'target_object': '" + target_object + "', "
@@ -64,5 +58,29 @@ def main():
         
         rosnode.pub.publish(msg_to_send)
 
-if __name__ == '__main__':
+def send_templates_1():
+    rclpy.init()
+    rosnode = PublishHRICommand()
+
+    templates_to_run = ['point', 'pick', 'release', 'pass']
+    for template in templates_to_run:
+        input(f"Run template {template} (ENTER)")
+        run_template(rosnode, template)
+
+def main():
+    """ User Input assign template, infinite loop
+    """    
+
+    rclpy.init()
+    print("This is imitrob_template tester")
+    rosnode = PublishHRICommand()
+    print("This is imitrob_template tester")
+    print("- This exmaple uses crow object cube_holes!")
+
+    while True:
+        target_action = str(input("Enter task name: "))
+        run_template(rosnode, target_action)
+
+
+if __name__ == '__main__':   
     main()

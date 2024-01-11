@@ -42,5 +42,5 @@ def create_template(template_name):
     'put-into': PutIntoTask(),
     'pour': PourTask(),
     'stack': StackTask(),
-    'pass': PassTask(),
+    'pass': PassTask()
     }[template_name]

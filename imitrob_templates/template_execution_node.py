@@ -91,9 +91,9 @@ class HRICommandRunnerNode(Node):
             print(f"{k}: {v}")
         print("********************")
 
-        task.execute(self.robot_client, mode=TaskExecutionMode.BASIC)
+        ret_bool, ret = task.execute(self.robot_client, mode=TaskExecutionMode.BASIC)
         
-        print("handle_hricommand ended")
+        print(f"handle_hricommand ended: {ret_bool}, message: {ret}")
         
 
 
