@@ -23,7 +23,7 @@ class SceneOntologyClient():
         o_list = self.get_objects_from_onto()
         if len(o_list) == 0:
            print("Adding a dummy cube into ontology")
-           self.crowracle.add_test_object("CUBE")    
+           self.crowracle.add_test_object("cube_holes")    
     
     def get_objects_from_onto(self):
         o_list = self.crowracle.getTangibleObjectsProps()

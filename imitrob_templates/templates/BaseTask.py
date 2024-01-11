@@ -4,6 +4,7 @@ from typing import Any, Callable, Tuple
 from crow_nlp.nlp_crow.database.Ontology import Template
 from teleop_msgs.msg import Intent
 from imitrob_hri.imitrob_nlp.nlp_utils import to_default_name
+from copy import deepcopy
 
 class TaskExecutionMode(enum.Enum):
     UNDEF = 0  # default value, should rise error
@@ -24,6 +25,7 @@ class BaseTask(Template):
         self.n_target_objects = 1
 
         self.target_object_penalizatiion = task_config['target_object_penalization']
+        self.target_storage_penalization = task_config['target_storage_penalization']
         self.execution_config_params = task_config['execution_config_params']
 
         # Set placeholder for grounded variables
@@ -33,6 +35,9 @@ class BaseTask(Template):
         self.scene = None
 
         self._modes = modes
+        
+        self.mm_pars_compulsary = task_config['mm_pars_compulsary']
+        
 
     def get_all_filled_voluntary_parameters(self):
         # TODO:
@@ -57,11 +62,6 @@ class BaseTask(Template):
     def complexity(self):
         return self.compare_types - 1  # complexity = 1
 
-    def has_compare_type(self, compare_type):
-        if compare_type in self.compare_types:
-            return True
-        else:
-            return False
         
     def ground_realpositions(self, s):
         self.scene = s
@@ -72,6 +72,9 @@ class BaseTask(Template):
             e.g. when object is not reachable, how much it matters for pick-task -> quite significant
         '''
         return self.target_object_penalization[property]
+    
+    def task_property_penalization_target_objects(self, property):
+        return self.target_storage_penalization[property]
 
     def execute(self, robot_client, mode=TaskExecutionMode.BASIC, **kwargs) -> Tuple[bool, str]:
         if mode not in self._modes:
@@ -137,3 +140,10 @@ class BaseTask(Template):
 
         return True
     
+    
+    ''' MM compatibility '''
+    def has_compare_type(self, compare_type):
+        if compare_type in self.mm_pars_compulsary:
+            return True
+        else:
+            return False

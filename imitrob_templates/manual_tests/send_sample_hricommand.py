@@ -45,16 +45,16 @@ def main():
 
         msg_to_send = HRICommand()
         s = "{'target_action': '" + target_action + "', 'target_object': '" + target_object + "', "
-        s += "'actions': ['" + target_action + "'], " #"', 'move_left', 'move_down', 'move_right', 'pick_up', 'put', 'place', 'pour', 'push', 'replace'], "
-        s += "'action_probs': ['" + "1.0" + "'], " #", 0.014667431372768347, 0.0008680663118536268, 0.035168211530459945, 0.0984559292675215, 0.012854139530004692, 0.0068131722011598225, 0.04846120672655781, 0.0020918881693065285, 0.01454853390045828], "
+        s += "'actions': ['" + target_action + "', 'release', 'pass', 'point'], " #"', 'move_left', 'move_down', 'move_right', 'pick_up', 'put', 'place', 'pour', 'push', 'replace'], "
+        s += "'action_probs': ['" + "1.0" + "', '0.05', '0.1', '0.15'], " #", 0.014667431372768347, 0.0008680663118536268, 0.035168211530459945, 0.0984559292675215, 0.012854139530004692, 0.0068131722011598225, 0.04846120672655781, 0.0020918881693065285, 0.01454853390045828], "
         
         if target_object == '':
             scene_objects = "[]"
             scene_object_probs = "[]"
             scene_object_classes = "[]"
         else:
-            scene_objects = "['" + target_object + "']"
-            scene_object_probs = "[1.0]"
+            scene_objects = "['" + target_object + "', 'wheel', 'sphere']"
+            scene_object_probs = "[1.0, 0.1, 0.15]"
             scene_object_classes = "['object']"
         
         s += "'action_timestamp': 0.0, 'objects': " + scene_objects + ", "

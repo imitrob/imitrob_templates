@@ -17,7 +17,7 @@ from imitrob_templates.templates import BaseTask, TaskExecutionMode
 
 class ReleaseTask(BaseTask):
     def __init__(self, *args, **kwargs):
-        self.n_target_objects = 1
+        self.n_target_objects = 0
         modes = {
             TaskExecutionMode.BASIC: self.blueprint_mode_1,
             TaskExecutionMode.MVAE: self.mvae_mode
@@ -26,14 +26,9 @@ class ReleaseTask(BaseTask):
     
     def is_feasible(self, o, s=None):
         #assert s is None
-        assert o is not None
+        # assert o is not None
 
-        if ( o.properties['reachable'] # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
-             ):
-            return True
-        else:
-            return False
-        
+        return True        
 
     def match_tagged_text(self, tagged_text : Intent, language = 'en', client = None) -> bool:
         # used by NLP processor

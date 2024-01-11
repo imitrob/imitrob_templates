@@ -9,6 +9,7 @@ from imitrob_templates.templates.PutIntoTask import PutIntoTask
 from imitrob_templates.templates.ReleaseTask import ReleaseTask
 from imitrob_templates.templates.StopTask import StopTask
 from imitrob_templates.templates.StackTask import StackTask
+from imitrob_templates.templates.PassTask import PassTask
 from imitrob_hri.imitrob_nlp.nlp_utils import template_name_synonyms
 
 
@@ -41,4 +42,5 @@ def create_template(template_name):
     'put-into': PutIntoTask(),
     'pour': PourTask(),
     'stack': StackTask(),
+    'pass': PassTask(),
     }[template_name]
