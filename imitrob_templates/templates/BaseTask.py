@@ -1,7 +1,7 @@
 import enum, time
 from typing import Any, Callable, Tuple
 
-from crow_nlp.nlp_crow.database.Ontology import Template
+from imitrob_hri.imitrob_nlp.database.Ontology import Template
 from teleop_msgs.msg import Intent
 from imitrob_hri.imitrob_nlp.nlp_utils import to_default_name
 from copy import deepcopy

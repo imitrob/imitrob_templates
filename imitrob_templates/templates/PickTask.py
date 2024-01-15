@@ -11,9 +11,11 @@ from imitrob_templates.utils import get_quaternion_eef
 from imitrob_templates.templates import BaseTask, TaskExecutionMode
 from teleop_msgs.msg import Intent
 
-from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
-from crow_nlp.nlp_crow.database.Ontology import Template
-
+from imitrob_hri.imitrob_nlp.modules.ObjectDetector import ObjectDetector
+from imitrob_hri.imitrob_nlp.modules.ObjectGrounder import ObjectGrounder
+from imitrob_hri.imitrob_nlp.database.Ontology import Template
+from imitrob_hri.imitrob_nlp.modules.UserInputManager import UserInputManager
+from crow_msgs.msg import CommandType
 
 class PickTask(BaseTask):
 
@@ -24,7 +26,17 @@ class PickTask(BaseTask):
             TaskExecutionMode.MVAE: self.mvae_mode
         }
         super().__init__(task_config=PickTaskConfig, modes=modes, *args, **kwargs)
-    
+        
+        # might be deleted if not needed 
+        self.lang = 'cs'
+        self.ui = UserInputManager(language = self.lang)
+        self.templ_det = self.ui.load_file('templates_detection.json')
+        # self.parameters = ['action', 'action_type', 'target', 'target_type']
+        self.target_object = [] #object to pick
+        self.target_type = 'onto_uri'
+        self.action_type = self.templ_det[self.lang]['pick']
+        self.target_action = 'pick'
+
     def is_feasible(self, o, s=None):
         #assert s is None
         assert o is not None
@@ -51,51 +63,27 @@ class PickTask(BaseTask):
             match (Bool): 
         '''
         od = ObjectDetector(language = language, client = client)
-        self.target = od.detect_object(tagged_text)
-
-        # # 1. Load all trigger words (verbs) for this template
-        # trigger_words = template_name_synonyms[self.id]
-        # # 2. Occurance
-        # if tagged_text.action in trigger_words:
-        #     matched = True
-        # else:
-        #     matched = False
-            
-        # if matched:
-        #     return True
-        # else:
-        #     return False
-
+        obj = od.detect_object(tagged_text)
+        self.objs_mentioned_data = obj
 
     def ground(self, language = 'en', client = None):
         ''' Grounding on the real objects 
         (Runs in Modality Merger)
         '''
-        
-        return
         self.lang = language
         self.ui = UserInputManager(language=self.lang)
         self.guidance_file = self.ui.load_file('guidance_dialogue.json')
         og = ObjectGrounder(language=self.lang, client=client)
-        if self.target:
-            self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
-            names_to_add = ['target_ph_cls', 'target_ph_color', 'target_ph_loc']
+        if self.objs_mentioned_data:
+            self.target_object, self.target_object_probs, self.objs_mentioned_cls, self.objs_mentioned_cls_probs, self.objs_properties = \
+                og.ground_object(obj_placeholder = self.objs_mentioned_data)
+           # self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
+            names_to_add = ['target_object_probs', 'objs_mentioned_cls', 'objs_mentioned_cls_probs', 'objs_properties']
             for name in names_to_add:
-                if getattr(self, name):
+                if getattr(self, name) is not None:
                     self.parameters.append(name)
-
         return
-        # I don't know what will be the format of the scene retrived from the ontology
-        # [{'uri': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#test_CUBE_498551_od_498551'), 'id': 'od_498551', 'color': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#COLOR_GREEN'), 'color_nlp_name_CZ': 'zelená', 'color_nlp_name_EN': 'green', 'nlp_name_CZ': 'kostka', 'nlp_name_EN': 'cube', 'absolute_location': [-0.34157065, 0.15214929, -0.24279054]}]
-        
-        # Finds i.target_object in the ontology objects
-        # Input:
-        '''
-        i.target_object
-        s
-        
-        return s[0] # tmp
-        '''
+
     
     def get_ground_data(self, relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         ''' Gather all information needed to execute the task
