@@ -7,6 +7,7 @@ from crow_ontology.crowracle_client import CrowtologyClient
 import numpy as np
 from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
 from context_based_gesture_operation.srcmodules.Objects import Object as Object2
+from context_based_gesture_operation.srcmodules.Objects import CrowObject2
 
 from imitrob_hri.data.scene3_def import Object3, Scene3
 from imitrob_templates.object_config import get_static_properties
@@ -74,7 +75,7 @@ class SceneOntologyClient():
             nlp_name_EN = object['nlp_name_EN']
             absolute_location = object['absolute_location']
             
-            o = Object2(name=name, position_real=np.array(absolute_location), random=False)
+            o = CrowObject2(name=name, type=name.split('_od_')[0], position_real=np.array(absolute_location), random=False)
             # o.quaternion = np.array(object['pose'][1])
             # o.color_uri = color
             o.color = color_nlp_name_EN
@@ -166,7 +167,6 @@ class SceneOntologyClient():
         template_names = ['pick up', 'point']
         s = Scene3(scene_objects, storages, template_names)
         
-
         return s        
 
 if __name__ == '__main__':
