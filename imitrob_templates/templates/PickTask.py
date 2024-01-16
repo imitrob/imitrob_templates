@@ -37,6 +37,9 @@ class PickTask(BaseTask):
         self.action_type = self.templ_det[self.lang]['pick']
         self.target_action = 'pick'
 
+        self.objs_detected_data = None
+        ''' Result of match: Some semantic information about the matched object '''
+
     def is_feasible(self, o, s=None):
         #assert s is None
         assert o is not None
@@ -54,17 +57,14 @@ class PickTask(BaseTask):
         pass
 
     def match_tagged_text(self, tagged_text : Intent, language = 'en', client = None) -> bool:
-        ''' TODO: tagged_text is output from sentence processor
-            Checks if given command TaggedText corresponds to this template without checking the current detection
+        ''' Checks if given command TaggedText corresponds to this template without checking the current detection
             Checks general classes in ontology (not in real world instances) 
-        (Idea: Runs in NLP package and then in modality merger)
         
         Returns:
             match (Bool): 
         '''
         od = ObjectDetector(language = language, client = client)
-        obj = od.detect_object(tagged_text)
-        self.objs_mentioned_data = obj
+        self.objs_detected_data = od.detect_object(tagged_text)
 
     def ground(self, language = 'en', client = None):
         ''' Grounding on the real objects 
@@ -74,10 +74,11 @@ class PickTask(BaseTask):
         self.ui = UserInputManager(language=self.lang)
         self.guidance_file = self.ui.load_file('guidance_dialogue.json')
         og = ObjectGrounder(language=self.lang, client=client)
-        if self.objs_mentioned_data:
+        
+        if self.objs_detected_data:
             self.target_object, self.target_object_probs, self.objs_mentioned_cls, self.objs_mentioned_cls_probs, self.objs_properties = \
-                og.ground_object(obj_placeholder = self.objs_mentioned_data)
-           # self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
+                og.ground_object(obj_placeholder = self.objs_detected_data)
+            # self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
             names_to_add = ['target_object_probs', 'objs_mentioned_cls', 'objs_mentioned_cls_probs', 'objs_properties']
             for name in names_to_add:
                 if getattr(self, name) is not None:

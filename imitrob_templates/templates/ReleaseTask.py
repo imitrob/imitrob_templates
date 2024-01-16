@@ -5,7 +5,7 @@ from copy import deepcopy
 
 from teleop_msgs.msg import Intent
 
-from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
+from imitrob_hri.imitrob_nlp.modules.ObjectDetector import ObjectDetector
 
 from typing import Dict, Any, Tuple
 import json

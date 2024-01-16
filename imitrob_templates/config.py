@@ -55,7 +55,7 @@ PointTaskConfig = {
 
 PassTaskConfig = {
     'id': 3,
-    'name': 'point',
+    'name': 'pass-me',
     # 'synonyms': ['pass', 'pass me', 'give me', 'bring', 'need', 'pass-me'],
     'pars_compulsary': ['target_action', 'target_object'],
     'pars_voluntary': [],

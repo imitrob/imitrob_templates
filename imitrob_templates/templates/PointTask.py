@@ -6,7 +6,10 @@ from copy import deepcopy
 
 from teleop_msgs.msg import Intent
 
-from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
+from imitrob_hri.imitrob_nlp.modules.ObjectDetector import ObjectDetector
+from imitrob_hri.imitrob_nlp.modules.ObjectGrounder import ObjectGrounder
+from imitrob_hri.imitrob_nlp.database.Ontology import Template
+from imitrob_hri.imitrob_nlp.modules.UserInputManager import UserInputManager
 
 from typing import Dict, Any, Tuple
 import json
@@ -34,15 +37,33 @@ class PointTask(BaseTask):
             return True
         else:
             return False
-        
 
     def match_tagged_text(self, tagged_text : Intent, language = 'en', client = None) -> bool:
-        # used by NLP processor
-        raise NotImplementedError()
+        ''' Matches general classes in ontology (not in real world instances) 
+        
+        Returns:
+            match (Bool): 
+        '''
+        od = ObjectDetector(language = language, client = client)
+        obj = od.detect_object(tagged_text)
+        self.objs_mentioned_data = obj
 
     def ground(self, language = 'en', client = None):
-        # used by NLP processor
-        raise NotImplementedError()
+        ''' Grounding on the real objects
+        '''
+        self.lang = language
+        self.ui = UserInputManager(language=self.lang)
+        self.guidance_file = self.ui.load_file('guidance_dialogue.json')
+        og = ObjectGrounder(language=self.lang, client=client)
+        if self.objs_mentioned_data:
+            self.target_object, self.target_object_probs, self.objs_mentioned_cls, self.objs_mentioned_cls_probs, self.objs_properties = \
+                og.ground_object(obj_placeholder = self.objs_mentioned_data)
+            # self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
+            names_to_add = ['target_object_probs', 'objs_mentioned_cls', 'objs_mentioned_cls_probs', 'objs_properties']
+            for name in names_to_add:
+                if getattr(self, name) is not None:
+                    self.parameters.append(name)
+        return
 
     
     def get_ground_data(self, relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
@@ -122,14 +143,14 @@ if __name__ == '__main__':
 
 """
 #!/usr/bin/env python3
-from crow_nlp.nlp_crow.database.Ontology import Template
+from imitrob_hri.imitrob_nlp.nlp_crow.database.Ontology import Template
 
-from crow_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
-from crow_nlp.nlp_crow.modules.ObjectGrounder import ObjectGrounder
-from crow_nlp.nlp_crow.modules.PositionStorageGrounder import PositionStorageGrounder
-from crow_nlp.nlp_crow.modules.PositionStorageDetector import PositionStorageDetector
-from crow_nlp.nlp_crow.structures.tagging.TaggedText import TaggedText
-from crow_nlp.nlp_crow.modules.UserInputManager import UserInputManager
+from imitrob_hri.imitrob_nlp.nlp_crow.modules.ObjectDetector import ObjectDetector
+from imitrob_hri.imitrob_nlp.nlp_crow.modules.ObjectGrounder import ObjectGrounder
+from imitrob_hri.imitrob_nlp.nlp_crow.modules.PositionStorageGrounder import PositionStorageGrounder
+from imitrob_hri.imitrob_nlp.nlp_crow.modules.PositionStorageDetector import PositionStorageDetector
+from imitrob_hri.imitrob_nlp.nlp_crow.structures.tagging.TaggedText import TaggedText
+from imitrob_hri.imitrob_nlp.nlp_crow.modules.UserInputManager import UserInputManager
 from crow_msgs.msg import CommandType
 
 import logging
