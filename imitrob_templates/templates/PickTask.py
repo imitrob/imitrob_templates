@@ -32,13 +32,10 @@ class PickTask(BaseTask):
         self.ui = UserInputManager(language = self.lang)
         self.templ_det = self.ui.load_file('templates_detection.json')
         # self.parameters = ['action', 'action_type', 'target', 'target_type']
-        self.target_object = [] #object to pick
+        # self.target_object = [] #object to pick
         self.target_type = 'onto_uri'
         self.action_type = self.templ_det[self.lang]['pick']
         self.target_action = 'pick'
-
-        self.objs_detected_data = None
-        ''' Result of match: Some semantic information about the matched object '''
 
     def is_feasible(self, o, s=None):
         #assert s is None
@@ -50,40 +47,7 @@ class PickTask(BaseTask):
             return True
         else:
             return False
-        
-    ''' There will be function that converts tagged text to HRICommand object '''
-    @staticmethod
-    def tagged_text_to_HRICommand(tagged_text):
-        pass
 
-    def match_tagged_text(self, tagged_text : Intent, language = 'en', client = None) -> bool:
-        ''' Checks if given command TaggedText corresponds to this template without checking the current detection
-            Checks general classes in ontology (not in real world instances) 
-        
-        Returns:
-            match (Bool): 
-        '''
-        od = ObjectDetector(language = language, client = client)
-        self.objs_detected_data = od.detect_object(tagged_text)
-
-    def ground(self, language = 'en', client = None):
-        ''' Grounding on the real objects 
-        (Runs in Modality Merger)
-        '''
-        self.lang = language
-        self.ui = UserInputManager(language=self.lang)
-        self.guidance_file = self.ui.load_file('guidance_dialogue.json')
-        og = ObjectGrounder(language=self.lang, client=client)
-        
-        if self.objs_detected_data:
-            self.target_object, self.target_object_probs, self.objs_mentioned_cls, self.objs_mentioned_cls_probs, self.objs_properties = \
-                og.ground_object(obj_placeholder = self.objs_detected_data)
-            # self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
-            names_to_add = ['target_object_probs', 'objs_mentioned_cls', 'objs_mentioned_cls_probs', 'objs_properties']
-            for name in names_to_add:
-                if getattr(self, name) is not None:
-                    self.parameters.append(name)
-        return
 
     
     def get_ground_data(self, relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
