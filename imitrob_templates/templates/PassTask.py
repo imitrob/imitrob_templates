@@ -19,7 +19,7 @@ from imitrob_hri.imitrob_nlp.modules.UserInputManager import UserInputManager
 
 class PassTask(BaseTask):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, nlp=True, *args, **kwargs):
         self.n_target_objects = 1
         modes = {
             TaskExecutionMode.BASIC: self.blueprint_mode_1,

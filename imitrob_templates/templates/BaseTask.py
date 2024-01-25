@@ -18,8 +18,8 @@ class TaskExecutionMode(enum.Enum):
 
 class BaseTask(Template):
 
-    def __init__(self, task_config: dict[str, Any], modes: dict[TaskExecutionMode, Callable]):
-        self.task_config = task_config
+    def __init__(self, task_config: dict[str, Any], modes: dict[TaskExecutionMode, Callable], nlp=False):
+        self.task_config = deepcopy(task_config)
 
         self.name = to_default_name(task_config['name'])
         self.id = task_config['id']
@@ -49,6 +49,8 @@ class BaseTask(Template):
         ''' Result of ground: Real data about the grounding'''
 
         self.nlp_all_detected_templates = []
+        
+        self.feasibility_requirements = task_config['requirements']
 
     ''' Need to be done externally 
         self.create_subscribtion(FrankaState, '/robot_state', self.franka_state_clb, 5)

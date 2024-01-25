@@ -60,11 +60,16 @@ class PutTask(Template):
         else:
             return False
 '''    
-class PutIntoTask():
-    def __init__(self):
-        self.name = 'put-into'
-        self.mm_pars_compulsary = ['template', 'selections', 'storages']
-        self.complexity = 2
+
+from imitrob_templates.config import PutIntoTaskConfig
+from imitrob_templates.templates import BaseTask
+
+class PutIntoTask(BaseTask):
+    def __init__(self, nlp=True, *args, **kwargs):
+        self.n_target_objects = 1
+        modes = {
+        }
+        super().__init__(task_config=PutIntoTaskConfig, modes=modes, *args, **kwargs)
 
     def has_compare_type(self, compare_type):
         if compare_type in self.mm_pars_compulsary:

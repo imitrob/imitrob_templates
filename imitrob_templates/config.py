@@ -1,5 +1,5 @@
 
-
+# MM Dataset (4), Crow (1)
 PickTaskConfig = {
     'id': 1,
     'name': 'pick',
@@ -8,13 +8,13 @@ PickTaskConfig = {
     'pars_voluntary': [],
     # inverted soft-requirements
     'target_object_penalization': {
-        'reachable': 0.4, # When object is not reachable, I still may want to  pick it, but the constraint action is penalized
-        'pickable':  0.0, # When object is not pickable it cannot be picked at all
-        'stackable': 1.0, 
-        'pushable':  1.0, 
-        'full-stack':1.0, #0.8, # When the object is full it can be still picked
-        'full-liquid':1.0,
-        'glued':     0.0, # When the object is glued it cannot be picked
+        'reachable':   0.4, # When object is not reachable, I still may want to  pick it, but the constraint action is penalized
+        'pickable':    0.0, # When object is not pickable it cannot be picked at all
+        'stackable':   1.0, 
+        'pushable':    1.0, 
+        'full-stack':  1.0, # 0.8, # When the object is full it can be still picked
+        'full-liquid': 1.0,
+        'glued':       0.0, # When the object is glued it cannot be picked
         },
     'target_storage_penalization': {},
     # hard requirements
@@ -27,6 +27,7 @@ PickTaskConfig = {
     'mm_pars_compulsary': ['template', 'selections'],
 }
 
+# Crow (2)
 PointTaskConfig = {
     'id': 2,
     'name': 'point',
@@ -53,6 +54,7 @@ PointTaskConfig = {
     'mm_pars_compulsary': ['template', 'selections'],
 }
 
+# Crow (3)
 PassTaskConfig = {
     'id': 3,
     'name': 'pass-me',
@@ -81,6 +83,24 @@ PassTaskConfig = {
     'mm_pars_compulsary': ['template', 'selections'],
 }
 
+# MM Dataset (1)
+MoveUpTaskConfig = {
+    'id': 11,
+    'name': 'move-up',
+    'pars_compulsary': ['target_action'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': [], '-': []},
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template'],
+}
+
+# MM Dataset (2)
 ReleaseTaskConfig = {
     'id': 4,
     'name': 'release',
@@ -108,18 +128,7 @@ ReleaseTaskConfig = {
     'mm_pars_compulsary': ['template'],
 }
 
-
-
-
-PourTaskConfig = {
-    
-    'pars_compulsary': ['target_action', 'target_object', 'target_storage'],
-    'pars_voluntary': [],
-    
-    # 'synonyms': ['pour', 'pour into'],
-    'mm_pars_compulsary': ['template', 'selections', 'storages'],
-}
-
+# MM Dataset (3)
 StopTaskConfig = {
     'id': 0,
     'name': 'stop',
@@ -136,18 +145,92 @@ StopTaskConfig = {
     'mm_pars_compulsary': ['template'],
 }
 
-MoveUpTaskConfig = {
-    'id': 11,
-    'name': 'move-up',
-    'pars_compulsary': ['target_action'],
+# MM Dataset (5)
+PushTaskConfig = {
+    'id': 13,
+    'name': 'push',
+    'pars_compulsary': ['target_action', 'target_object'],
     'pars_voluntary': [],
     
     'target_object_penalization': {}, # shouldn't be accessed
     'target_storage_penalization': {},
     
-    'requirements': {'+': [], '-': []},
+    'requirements': {'+': ['reachable', 'pushable'], '-': ['glued']},
     'execution_config_params': {
     },
     
-    'mm_pars_compulsary': ['template'],
+    'mm_pars_compulsary': ['template', 'selections'],
+}
+
+# MM Dataset (6)
+UnglueTaskConfig = {
+    'id': 12,
+    'name': 'unglue',
+    'pars_compulsary': ['target_action', 'target_object'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': ['glued'], '-': []},
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template', 'selections'],
+}
+
+# MM Dataset (7)
+PourTaskConfig = {
+    'id': 15,
+    'name': 'pour',
+    'pars_compulsary': ['target_action', 'target_object', 'target_storage'],
+    'pars_voluntary': [],
+    
+    # 'synonyms': ['pour', 'pour into'],
+    'mm_pars_compulsary': ['template', 'selections', 'storages'],
+    
+    'requirements': {'+': ['reachable', 'pickable', 'full-liquid'], '-': ['full-stack', 'glued'],
+                     's+':['reachable'], 's-': ['full-stack', 'full-liquid'], 'st': ['liquid-container']},
+    'execution_config_params': {
+    },
+    
+    'target_object_penalization': {}, 
+    'target_storage_penalization': {},
+    
+}
+
+# MM Dataset (8)
+PutIntoTaskConfig = {
+    'id': 14,
+    'name': 'put-into',
+    'pars_compulsary': ['target_action', 'target_object', 'storages'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
+                     's+': ['reachable', 'stackable'], 's-': ['full-stack'], 'st': ['container']},
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template', 'selections', 'storages'],
+}
+
+# MM Dataset (9)
+StackTaskConfig = {
+    'id': 16,
+    'name': 'stack',
+    'pars_compulsary': ['target_action', 'target_object', 'storages'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
+                     's+': ['reachable', 'stackable'], 's-': ['full-stack']},
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template', 'selections', 'storages'],
 }

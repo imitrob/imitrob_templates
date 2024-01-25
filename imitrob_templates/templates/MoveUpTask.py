@@ -3,7 +3,7 @@ from imitrob_templates.templates.BaseTask import BaseTask
 from imitrob_templates.config import MoveUpTaskConfig
 
 class MoveUpTask(BaseTask):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, nlp=True, *args, **kwargs):
         self.n_target_objects = 0
         modes = {
             # TaskExecutionMode.BASIC: self.blueprint_mode_1,

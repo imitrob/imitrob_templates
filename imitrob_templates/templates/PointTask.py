@@ -20,7 +20,7 @@ from imitrob_templates.utils import get_quaternion_eef
 from imitrob_templates.templates import BaseTask, TaskExecutionMode
 
 class PointTask(BaseTask):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, nlp=True, *args, **kwargs):
         self.n_target_objects = 1
         modes = {
             TaskExecutionMode.BASIC: self.blueprint_mode_1,

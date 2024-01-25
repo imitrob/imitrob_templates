@@ -26,21 +26,42 @@ def to_default_name(name, ct='template'):
     print(f"Exception for {name} not in {ct_name_synonyms}")
     print("returning")
 
-def create_template(template_name):
+def create_template(template_name, nlp=False):
     template_name = to_default_name(template_name)
     if template_name is None:
         return
 
     return {
-    'stop': StopTask(),
-    'release': ReleaseTask(),
-    'move-up': MoveUpTask(),
-    'pick': PickTask(),
-    'point': PointTask(),
-    'push': PushTask(),
-    'unglue': UnglueTask(),
-    'put-into': PutIntoTask(),
-    'pour': PourTask(),
-    'stack': StackTask(),
-    'pass': PassTask()
-    }[template_name]
+    'stop': StopTask,
+    'release': ReleaseTask,
+    'move-up': MoveUpTask,
+    'pick': PickTask,
+    'point': PointTask,
+    'push': PushTask,
+    'unglue': UnglueTask,
+    'put-into': PutIntoTask,
+    'pour': PourTask,
+    'stack': StackTask,
+    'pass': PassTask
+    }[template_name](nlp=nlp)
+    
+    
+    
+if __name__ == '__main__':
+    import time
+    tmplts = ['stop',
+    'release',
+    'move-up',
+    'pick',
+    'point',
+    'push',
+    'unglue',
+    'put-into',
+    'pour',
+    'stack',
+    'pass']
+    
+    for tmplt in tmplts:
+        t0 = time.perf_counter()
+        t = create_template(tmplt)
+        print(f"time {tmplt}: {time.perf_counter()-t0}")

@@ -19,7 +19,7 @@ from crow_msgs.msg import CommandType
 
 class PickTask(BaseTask):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, nlp=True, *args, **kwargs):
         self.n_target_objects = 1
         modes = {
             TaskExecutionMode.BASIC: self.blueprint_mode_1,
@@ -29,13 +29,29 @@ class PickTask(BaseTask):
         
         # might be deleted if not needed 
         self.lang = 'cs'
-        self.ui = UserInputManager(language = self.lang)
-        self.templ_det = self.ui.load_file('templates_detection.json')
-        # self.parameters = ['action', 'action_type', 'target', 'target_type']
-        # self.target_object = [] #object to pick
-        self.target_type = 'onto_uri'
-        self.action_type = self.templ_det[self.lang]['pick']
+        if nlp:
+            self.ui = UserInputManager(language = self.lang)
+            self.templ_det = self.ui.load_file('templates_detection.json')
+            # self.parameters = ['action', 'action_type', 'target', 'target_type']
+            # self.target_object = [] #object to pick
+            self.target_type = 'onto_uri'
+            self.action_type = self.templ_det[self.lang]['pick']
         self.target_action = 'pick'
+
+    def is_feasible(self, o, s=None):
+        assert o is not None
+        
+        # If any Positive '+' requirement is not fulfilled, return False - not feasible 
+        for req in self.feasibility_requirements['+']:
+            if not o.properties[req]:
+                return False
+        # If any Negative '-' requirement is true, reutrn False - not feasible
+        for req in self.feasibility_requirements['-']:
+            if o.properties[req]:
+                return False
+        
+        # All requirement are fulfilled
+        return True
 
     def is_feasible(self, o, s=None):
         #assert s is None

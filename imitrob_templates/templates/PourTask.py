@@ -1,8 +1,14 @@
-class PourTask():
-    def __init__(self):
-        self.name = 'pour'
-        self.mm_pars_compulsary = ['template', 'selections', 'storages']
-        self.complexity = 2
+
+from imitrob_templates.templates import BaseTask
+from imitrob_templates.config import PourTaskConfig
+
+class PourTask(BaseTask):
+    def __init__(self, nlp=True, *args, **kwargs):
+        self.n_target_objects = 1
+        modes = {
+        }
+        super().__init__(task_config=PourTaskConfig, modes=modes, *args, **kwargs)
+        
 
     def has_compare_type(self, compare_type):
         if compare_type in self.mm_pars_compulsary:
