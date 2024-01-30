@@ -64,10 +64,10 @@ PassTaskConfig = {
     # inverted soft-requirements
     'target_object_penalization': {
         'reachable':   0.4,
-        'pickable':    0.0, 
-        'stackable':   1.0, 
-        'pushable':    1.0, 
-        'full-stack':  1.0, 
+        'pickable':    0.0,
+        'stackable':   1.0,
+        'pushable':    1.0,
+        'full-stack':  1.0,
         'full-liquid': 1.0,
         'glued':       0.0,
         },

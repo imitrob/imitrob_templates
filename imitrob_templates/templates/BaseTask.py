@@ -42,10 +42,10 @@ class BaseTask(Template):
         
         self.mm_pars_compulsary = task_config['mm_pars_compulsary']
         
-        self._1_detected_data = []
+        self._1_detected_data = {}
         ''' Result of match: Some semantic information about the matching '''
 
-        self._2_grounded_data = []
+        self._2_grounded_data = {}
         ''' Result of ground: Real data about the grounding'''
 
         self.nlp_all_detected_templates = []
@@ -210,10 +210,36 @@ class BaseTask(Template):
             └── process_node()
                 └── nlp_match()
         '''
-        od = ObjectDetector(language = language, client = client)
-        objs_det = od.detect_object(tagged_text)
-        if objs_det is not None:
-            self._1_detected_data.append(objs_det)
+        requirements = deepcopy(self.parameters) # pars_compulsary + pars_optional 
+
+        for req in requirements:
+            if req == 'target_action': continue
+            if req == 'target_object':
+                od = ObjectDetector(language = language, client = client)
+                objs_det = od.detect_object(tagged_text)
+                
+                if objs_det is not None :
+                    # keep only objects marked as target_object
+                    objs_det.keep_only_target_objects()
+                    
+                    self._1_detected_data['to'] = deepcopy(objs_det)
+                    print(f" ** [Object Detector] ended with: **\n{objs_det.objs_mentioned_cls}\n************************************")
+                continue
+            if req == 'target_storage':
+                od = ObjectDetector(language = language, client = client)
+                stgs_det = od.detect_object(tagged_text)
+
+                # od = LocationDetector(language = language, client = client)
+                # stgs_det = od.detect_storage(tagged_text)
+
+                if stgs_det is not None:
+                    stgs_det.keep_only_target_storages()
+                    
+                    self._1_detected_data['ts'] = deepcopy(stgs_det)
+                continue
+
+            raise Exception(f"requirement: {req} is not in [target_action, target_object, target_storage]!")
+
 
     def nlp_ground(self, language = 'en', client = None):
         ''' Grounding on the real objects 
@@ -231,32 +257,15 @@ class BaseTask(Template):
         self.guidance_file = self.ui.load_file('guidance_dialogue.json')
         og = ObjectGrounder(language=self.lang, client=client)
         
-        if len(self._1_detected_data) == 1:
-
-            objs_detected_data = self._1_detected_data[0]
-            objs_grd = og.ground_object(obj_placeholder = objs_detected_data)
-            
-            print("====================================")
-            print("target object: ", self.target_object)
-            print(objs_grd.to)
-            # print(self.objs_grd.objs_mentioned_cls)
-            # print(self.objs_grd.objs_mentioned_cls_probs)
-            # print(self.objs_grd.objs_properties)
-            print("====================================")
-
-            # self.target, self.target_ph_cls, self.target_ph_color, self.target_ph_loc = og.ground_object(obj_placeholder=self.target)
-            ''' DO WE NEED TO ADD THESE NAMES?
-            names_to_add = ['target_object_probs', 'objs_mentioned_cls', 'objs_mentioned_cls_probs', 'objs_properties']
-            for name in names_to_add:
-                if getattr(self, name) is not None:
-                    self.parameters.append(name)
-            '''            
+        if 'to' in self._1_detected_data.keys():
+            objs_grd = og.ground_object(obj_placeholder = self._1_detected_data['to'])
             if objs_grd is not None:
-                self._2_grounded_data.append(objs_grd)
-        elif len(self._1_detected_data) > 1:
-            raise NotImplementedError("TODO: More detected data")
+                self._2_grounded_data['to'] = deepcopy(objs_grd)
 
-        return
+        if 'ts' in self._1_detected_data.keys():
+            stgs_grd = og.ground_object(obj_placeholder = self._1_detected_data['ts'])
+            if stgs_grd is not None:
+                self._2_grounded_data['ts'] = deepcopy(stgs_grd)
 
     
     ''' Property readers concept 
@@ -267,9 +276,15 @@ class BaseTask(Template):
     @property
     def target_object(self):
         ''' Concept '''
-        
-        if len(self._2_grounded_data) == 0:
+        if 'to' in self._2_grounded_data:
+            return self._2_grounded_data['to'].to.max
+        else:
             return None
-        elif len(self._2_grounded_data) == 1:
-            return self._2_grounded_data[0].to.max
-        else: raise NotImplementedError("TODO: Multi Grounded objects/data?")
+
+    @property
+    def target_storage(self):
+        ''' Concept '''
+        if 'ts' in self._2_grounded_data:
+            return self._2_grounded_data['ts'].to.max
+        else:
+            return None

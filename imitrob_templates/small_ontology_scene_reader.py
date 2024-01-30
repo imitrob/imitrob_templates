@@ -74,8 +74,9 @@ class SceneOntologyClient():
             nlp_name_CZ = object['nlp_name_CZ']
             nlp_name_EN = object['nlp_name_EN']
             absolute_location = object['absolute_location']
+            absolute_orientation = object['absolute_quaternion']
             
-            o = CrowObject2(name=name, type=name.split('_od_')[0], position_real=np.array(absolute_location), random=False)
+            o = CrowObject2(name=name, type=name.split('_od_')[0], position_real=np.array(absolute_location), orientation=absolute_orientation, random=False)
             # o.quaternion = np.array(object['pose'][1])
             # o.color_uri = color
             o.color = color_nlp_name_EN
