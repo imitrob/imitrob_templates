@@ -24,6 +24,13 @@ class ReleaseTask(BaseTask):
         }
         super().__init__(task_config=ReleaseTaskConfig, modes=modes, *args, **kwargs)
     
+    @staticmethod
+    def detect_fun(tagged_text, templ_det, lang):
+        if tagged_text.contains_text(templ_det[lang]['release']):
+            return True, 'release'
+        else:
+            return False, ''
+
     def is_feasible(self, o, s=None):
         #assert s is None
         # assert o is not None

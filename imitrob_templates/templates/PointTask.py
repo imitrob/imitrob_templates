@@ -28,6 +28,13 @@ class PointTask(BaseTask):
         }
         super().__init__(task_config=PointTaskConfig, modes=modes, *args, **kwargs)
     
+    @staticmethod
+    def detect_fun(tagged_text, templ_det, lang):
+        if tagged_text.contains_text(templ_det[lang]['point']):
+            return True, 'point'
+        else:
+            return False, ''
+
     def is_feasible(self, o, s=None):
         #assert s is None
         assert o is not None

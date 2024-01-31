@@ -11,6 +11,13 @@ class StopTask(BaseTask):
         }
         super().__init__(task_config=StopTaskConfig, modes=modes, *args, **kwargs)
     
+    @staticmethod
+    def detect_fun(tagged_text, templ_det, lang):
+        if tagged_text.contains_text(templ_det[lang]['stop']):
+            return True, 'stop'
+        else:
+            return False, ''
+
     def task_property_penalization(self, property):
         raise Exception("Should not have properties")
 

@@ -236,25 +236,26 @@ class BaseTask(Template):
             if req == 'target_action': continue
             if req == 'target_object':
                 od = ObjectDetector(language = language, client = client)
-                objs_det = od.detect_object(tagged_text)
+                objs_det = od.detect_object(tagged_text, detect_type='target_object')
                 
                 if objs_det is not None :
                     # keep only objects marked as target_object
-                    objs_det.keep_only_target_objects()
+                    #objs_det.keep_only_target_objects()
                     
                     self._1_detected_data['to'] = deepcopy(objs_det)
-                    print(f" ** [Object Detector] ended with: **\n{objs_det.objs_mentioned_cls}\n************************************")
+                    print(f" ******* [Base Task] nlp_match:TO ended with: *******\n{objs_det.objs_mentioned_cls}\n************************************")
                 continue
             if req == 'target_storage':
                 od = ObjectDetector(language = language, client = client)
-                stgs_det = od.detect_object(tagged_text)
-
+                stgs_det = od.detect_object(tagged_text, detect_type='target_storage')
+                
                 # od = LocationDetector(language = language, client = client)
                 # stgs_det = od.detect_storage(tagged_text)
 
                 if stgs_det is not None:
-                    stgs_det.keep_only_target_storages()
+                    #stgs_det.keep_only_target_storages()
                     
+                    print(f" ******* [Base Task] nlp_match:TS ended with: *******\n{stgs_det.objs_mentioned_cls}\n************************************")
                     self._1_detected_data['ts'] = deepcopy(stgs_det)
                 continue
 

@@ -9,6 +9,13 @@ class PourTask(BaseTask):
         }
         super().__init__(task_config=PourTaskConfig, modes=modes, *args, **kwargs)
         
+    @staticmethod
+    def detect_fun(tagged_text, templ_det, lang):
+        if tagged_text.contains_text(templ_det[lang]['pour']):
+            return True, 'pour'
+        else:
+            return False, ''
+
     def task_property_penalization_selections(self, property):
         ''' How much to penalize for given property - weighted
             Set up using common sense

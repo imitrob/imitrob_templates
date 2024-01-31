@@ -11,6 +11,15 @@ class MoveUpTask(BaseTask):
         }
         super().__init__(task_config=MoveUpTaskConfig, modes=modes, *args, **kwargs)
     
+    @staticmethod
+    def detect_fun(tagged_text, templ_det, lang):
+        
+        if tagged_text.contains_text(templ_det[lang]['move up']):
+            return True, 'move-up'
+        else:
+            return False, ''
+
+
     def task_property_penalization(self, property):
         raise Exception("Should not have properties")
 

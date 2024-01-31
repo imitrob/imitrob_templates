@@ -27,6 +27,15 @@ class PassTask(BaseTask):
         }
         super().__init__(task_config=PassTaskConfig, modes=modes, *args, **kwargs)
     
+    @staticmethod
+    def detect_fun(tagged_text, templ_det, lang):
+        if tagged_text.contains_text(templ_det[lang]['give']) or \
+           tagged_text.contains_text(templ_det[lang]['pass']) or \
+           tagged_text.contains_text(templ_det[lang]['pass me']):
+            return True, 'pass'
+        else:
+            return False, ''
+
     def is_feasible(self, o, s=None):
         #assert s is None
         assert o is not None
