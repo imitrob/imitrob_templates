@@ -52,6 +52,11 @@ class BaseTask(Template):
         
         self.feasibility_requirements = task_config['requirements']
 
+        # self.lang = 'cs'
+        if nlp:
+            self.ui = UserInputManager(language = self.lang)
+            self.templ_det = self.ui.load_file('templates_detection.json')
+
     ''' Need to be done externally 
         self.create_subscribtion(FrankaState, '/robot_state', self.franka_state_clb, 5)
         self.get_last_state_flag = False
@@ -74,6 +79,21 @@ class BaseTask(Template):
             self.last_state = msg
             self.get_last_state_flag = False
     '''
+    def is_feasible(self, o, s=None):
+        assert o is not None
+        
+        # If any Positive '+' requirement is not fulfilled, return False - not feasible 
+        for req in self.feasibility_requirements['+']:
+            if not o.properties[req]:
+                return False
+        # If any Negative '-' requirement is true, reutrn False - not feasible
+        for req in self.feasibility_requirements['-']:
+            if o.properties[req]:
+                return False
+        
+        # All requirement are fulfilled
+        return True
+
     def get_all_filled_voluntary_parameters(self):
         # TODO:
         return self.pars_voluntary
@@ -288,3 +308,9 @@ class BaseTask(Template):
             return self._2_grounded_data['ts'].to.max
         else:
             return None
+
+    def blueprint_mode_1(self):
+        raise NotImplementedError("This should be overloaded")
+    
+    def mvae_mode(self):
+        raise NotImplementedError("This should be overloaded")

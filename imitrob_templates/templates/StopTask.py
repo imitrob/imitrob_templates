@@ -3,7 +3,7 @@ from imitrob_templates.templates.BaseTask import BaseTask
 from imitrob_templates.config import StopTaskConfig
 
 class StopTask(BaseTask):
-    def __init__(self, nlp=True, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.n_target_objects = 0
         modes = {
             # TaskExecutionMode.BASIC: self.blueprint_mode_1,
@@ -18,4 +18,5 @@ class StopTask(BaseTask):
         #assert o is None
         #assert s is None
 
+        assert super().is_feasible(o,s) == True
         return True

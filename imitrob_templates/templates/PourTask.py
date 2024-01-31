@@ -3,19 +3,12 @@ from imitrob_templates.templates import BaseTask
 from imitrob_templates.config import PourTaskConfig
 
 class PourTask(BaseTask):
-    def __init__(self, nlp=True, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.n_target_objects = 1
         modes = {
         }
         super().__init__(task_config=PourTaskConfig, modes=modes, *args, **kwargs)
         
-
-    def has_compare_type(self, compare_type):
-        if compare_type in self.mm_pars_compulsary:
-            return True
-        else:
-            return False
-
     def task_property_penalization_selections(self, property):
         ''' How much to penalize for given property - weighted
             Set up using common sense
@@ -49,6 +42,7 @@ class PourTask(BaseTask):
         assert o is not None
         #assert s is not None
         
+        ret = None
         if (o.properties['reachable'] and
             o.properties['pickable'] and
             not o.properties['full-stack'] and
@@ -61,6 +55,9 @@ class PourTask(BaseTask):
                 s.is_type('liquid-container')
                 ))
             ):
-            return True
+            ret = True
         else:
-            return False
+            ret = False
+        
+        assert super().is_feasible(o,s) == ret
+        return ret

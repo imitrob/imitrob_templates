@@ -16,7 +16,7 @@ from imitrob_templates.utils import get_quaternion_eef
 from imitrob_templates.templates import BaseTask, TaskExecutionMode
 
 class ReleaseTask(BaseTask):
-    def __init__(self, nlp=True, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.n_target_objects = 0
         modes = {
             TaskExecutionMode.BASIC: self.blueprint_mode_1,
@@ -28,8 +28,9 @@ class ReleaseTask(BaseTask):
         #assert s is None
         # assert o is not None
 
-        return True        
-
+        assert super().is_feasible(o,s) == True
+        return True
+        
     def match_tagged_text(self, tagged_text : Intent, language = 'en', client = None) -> bool:
         # used by NLP processor
         raise NotImplementedError()
@@ -87,41 +88,7 @@ class ReleaseTask(BaseTask):
 
         return check_preconditions, self.get_ground_data, move_1, check_postconditions
 
-    def mvae_mode(self, robot_client, mvae):
-        raise NotImplementedError()
-
 if __name__ == '__main__':
     task = ReleaseTask()
     print("This is task: ")
     print(task)
-
-'''
-class ReleaseTask():
-    def __init__(self):
-        self.name = 'release'
-        self.compare_types = ['template']
-        self.complexity = 0
-
-    def has_compare_type(self, compare_type):
-        if compare_type in self.compare_types:
-            return True
-        else:
-            return False
-    
-    def task_property_penalization(self, property):
-        raise Exception("Should not have properties")
-        return {'reachable': 1.0,
-                'pickable':  1.0, 
-                'stackable': 1.0,
-                'pushable':  1.0, 
-                'full':      1.0,
-                'glued':     1.0,
-            }[property]
-
-    def is_feasible(self, o=None, s=None):
-        #assert o is None
-        #assert s is None
-
-        return True
-        
-'''

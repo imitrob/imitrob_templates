@@ -13,7 +13,7 @@ from teleop_msgs.msg import Intent, HRICommand
 from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
 from context_based_gesture_operation.srcmodules.Objects import Object as Object2
 from imitrob_templates.templates.BaseTask import TaskExecutionMode
-from imitrob_templates.small_template_factory import create_template
+from imitrob_hri.imitrob_nlp.TemplateFactory import create_template
 
 class HRICommandRunnerNode(Node):
     def __init__(self, rosnode_name = 'HRI_runner'):

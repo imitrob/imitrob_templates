@@ -203,7 +203,7 @@ PourTaskConfig = {
 PutIntoTaskConfig = {
     'id': 14,
     'name': 'put-into',
-    'pars_compulsary': ['target_action', 'target_object', 'storages'],
+    'pars_compulsary': ['target_action', 'target_object', 'target_storage'],
     'pars_voluntary': [],
     
     'target_object_penalization': {}, # shouldn't be accessed
@@ -221,7 +221,7 @@ PutIntoTaskConfig = {
 StackTaskConfig = {
     'id': 16,
     'name': 'stack',
-    'pars_compulsary': ['target_action', 'target_object', 'storages'],
+    'pars_compulsary': ['target_action', 'target_object', 'target_storage'],
     'pars_voluntary': [],
     
     'target_object_penalization': {}, # shouldn't be accessed

@@ -19,7 +19,7 @@ from imitrob_hri.imitrob_nlp.modules.UserInputManager import UserInputManager
 
 class PassTask(BaseTask):
 
-    def __init__(self, nlp=True, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.n_target_objects = 1
         modes = {
             TaskExecutionMode.BASIC: self.blueprint_mode_1,
@@ -31,12 +31,16 @@ class PassTask(BaseTask):
         #assert s is None
         assert o is not None
 
+        ret = None
         if ( o.properties['reachable'] and  # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
              o.properties['pickable'] and  # When object is not pickable it cannot be picked at all
              not o.properties['glued'] ):
-            return True
+            ret = True
         else:
-            return False
+            ret = False
+        
+        assert super().is_feasible(o,s) == ret
+        return ret
 
     def get_ground_data(self, relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         ''' Gather all information needed to execute the task
@@ -137,13 +141,6 @@ class PassTask(BaseTask):
             return True, relevant_data
 
         return check_preconditions, self.get_ground_data, move_1, move_2, move_3, move_4, check_postconditions
-
-    def mvae_mode(self):
-        raise Exception("TODO")
-
-
-    def mvae_mode(self):
-        raise NotImplementedError()
         
 if __name__ == '__main__':
     task = PassTask()

@@ -19,52 +19,28 @@ from crow_msgs.msg import CommandType
 
 class PickTask(BaseTask):
 
-    def __init__(self, nlp=True, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.n_target_objects = 1
         modes = {
             TaskExecutionMode.BASIC: self.blueprint_mode_1,
             TaskExecutionMode.MVAE: self.mvae_mode
         }
         super().__init__(task_config=PickTaskConfig, modes=modes, *args, **kwargs)
-        
-        # might be deleted if not needed 
-        self.lang = 'cs'
-        if nlp:
-            self.ui = UserInputManager(language = self.lang)
-            self.templ_det = self.ui.load_file('templates_detection.json')
-            # self.parameters = ['action', 'action_type', 'target', 'target_type']
-            # self.target_object = [] #object to pick
-            self.target_type = 'onto_uri'
-            self.action_type = self.templ_det[self.lang]['pick']
-        self.target_action = 'pick'
-
-    def is_feasible(self, o, s=None):
-        assert o is not None
-        
-        # If any Positive '+' requirement is not fulfilled, return False - not feasible 
-        for req in self.feasibility_requirements['+']:
-            if not o.properties[req]:
-                return False
-        # If any Negative '-' requirement is true, reutrn False - not feasible
-        for req in self.feasibility_requirements['-']:
-            if o.properties[req]:
-                return False
-        
-        # All requirement are fulfilled
-        return True
 
     def is_feasible(self, o, s=None):
         #assert s is None
         assert o is not None
 
+        ret = None
         if ( o.properties['reachable'] and  # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
              o.properties['pickable'] and  # When object is not pickable it cannot be picked at all
              not o.properties['glued'] ):
-            return True
+            ret = True
         else:
-            return False
+            ret = False
 
-
+        assert super().is_feasible(o,s) == ret
+        return ret
     
     def get_ground_data(self, relevant_data: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         ''' Gather all information needed to execute the task
