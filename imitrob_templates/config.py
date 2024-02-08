@@ -234,3 +234,37 @@ StackTaskConfig = {
     
     'mm_pars_compulsary': ['template', 'selections', 'storages'],
 }
+
+NoopTaskConfig = {
+    'id': 18,
+    'name': 'noop',
+    'pars_compulsary': [],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': [], '-': []},
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': [],
+}
+
+
+OpenTaskConfig = {
+    'id': 17,
+    'name': 'open',
+    'pars_compulsary': ['target_action', 'target_storage'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': [], '-': [], # TODO
+                     's+': [], 's-': []}, # TODO
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template', 'storages'],
+}

@@ -4,6 +4,7 @@ from imitrob_hri.imitrob_nlp.modules.ObjectDetector import ObjectDetector
 from imitrob_hri.imitrob_nlp.modules.ObjectGrounder import ObjectGrounder
 from imitrob_hri.imitrob_nlp.modules.UserInputManager import UserInputManager
 from imitrob_hri.imitrob_nlp.database.Ontology import Template
+from imitrob_hri.merging_modalities.probs_vector import ProbsVector
 from teleop_msgs.msg import Intent
 from imitrob_hri.imitrob_nlp.nlp_utils import to_default_name
 from copy import deepcopy
@@ -22,6 +23,7 @@ class BaseTask(Template):
         self.task_config = deepcopy(task_config)
 
         self.name = to_default_name(task_config['name'])
+        self.task_prob = 1.0
         self.id = task_config['id']
         self.pars_compulsary = task_config['pars_compulsary']
         self.pars_voluntary = task_config['pars_voluntary']
@@ -48,7 +50,7 @@ class BaseTask(Template):
         self._2_grounded_data = {}
         ''' Result of ground: Real data about the grounding'''
 
-        self.nlp_all_detected_templates = []
+        self.template_probs = ProbsVector(c='default')
         
         self.feasibility_requirements = task_config['requirements']
 
@@ -216,8 +218,8 @@ class BaseTask(Template):
                 return False
         return True
     
-
-    def nlp_match(self, tagged_text : Intent, language = 'en', client = None) -> bool:
+    @staticmethod
+    def nlp_match(tagged_text : Intent, language = 'en', client = None) -> bool:
         ''' Checks if given command TaggedText corresponds to this template without checking the current detection
             Checks general classes in ontology (not in real world instances) 
         
@@ -230,21 +232,27 @@ class BaseTask(Template):
             └── process_node()
                 └── nlp_match()
         '''
-        requirements = deepcopy(self.parameters) # pars_compulsary + pars_optional 
+        # requirements = deepcopy(self.parameters) # pars_compulsary + pars_optional 
+        _1_detected_data = {}
 
-        for req in requirements:
+        all_requirements = ['target_action', 'target_object', 'target_storage']
+        for req in all_requirements:
+
+
             if req == 'target_action': continue
+
             if req == 'target_object':
                 od = ObjectDetector(language = language, client = client)
                 objs_det = od.detect_object(tagged_text, detect_type='target_object')
                 
                 if objs_det is not None :
-                    # keep only objects marked as target_object
-                    #objs_det.keep_only_target_objects()
-                    
-                    self._1_detected_data['to'] = deepcopy(objs_det)
+                    _1_detected_data['to'] = deepcopy(objs_det)
                     print(f" ******* [Base Task] nlp_match:TO ended with: *******\n{objs_det.objs_mentioned_cls}\n************************************")
-                continue
+                else:
+                    # Detect penalized properties
+                    _1_detected_data['to'] = od.detect_standalone_properties(tagged_text)
+                    print(f" ******* [Base Task] nlp_match:TO ended with: None ******* ")
+
             if req == 'target_storage':
                 od = ObjectDetector(language = language, client = client)
                 stgs_det = od.detect_object(tagged_text, detect_type='target_storage')
@@ -253,16 +261,16 @@ class BaseTask(Template):
                 # stgs_det = od.detect_storage(tagged_text)
 
                 if stgs_det is not None:
-                    #stgs_det.keep_only_target_storages()
-                    
                     print(f" ******* [Base Task] nlp_match:TS ended with: *******\n{stgs_det.objs_mentioned_cls}\n************************************")
-                    self._1_detected_data['ts'] = deepcopy(stgs_det)
-                continue
+                    _1_detected_data['ts'] = deepcopy(stgs_det)
+                else:
+                    print(f" ******* [Base Task] nlp_match:TS ended with: None ******* ")
+            
+            # raise Exception(f"requirement: {req} is not in [target_action, target_object, target_storage]!")
+        return _1_detected_data
 
-            raise Exception(f"requirement: {req} is not in [target_action, target_object, target_storage]!")
-
-
-    def nlp_ground(self, language = 'en', client = None):
+    @staticmethod
+    def nlp_ground(_1_detected_data, language = 'en', client = None):
         ''' Grounding on the real objects 
         (Runs in Modality Merger)
 
@@ -273,21 +281,23 @@ class BaseTask(Template):
                 └── nlp_match()
                 └── nlp_ground()
         '''
-        self.lang = language
-        self.ui = UserInputManager(language=self.lang)
-        self.guidance_file = self.ui.load_file('guidance_dialogue.json')
-        og = ObjectGrounder(language=self.lang, client=client)
-        
-        if 'to' in self._1_detected_data.keys():
-            objs_grd = og.ground_object(obj_placeholder = self._1_detected_data['to'])
+        # self.lang = language
+        # self.ui = UserInputManager(language=self.lang)
+        # self.guidance_file = self.ui.load_file('guidance_dialogue.json')
+        og = ObjectGrounder(language=language, client=client)
+        _2_grounded_data = {}
+
+        if 'to' in _1_detected_data.keys():
+            objs_grd = og.ground_object(obj_placeholder = _1_detected_data['to'])
             if objs_grd is not None:
-                self._2_grounded_data['to'] = deepcopy(objs_grd)
+                _2_grounded_data['to'] = deepcopy(objs_grd)
 
-        if 'ts' in self._1_detected_data.keys():
-            stgs_grd = og.ground_object(obj_placeholder = self._1_detected_data['ts'])
+        if 'ts' in _1_detected_data.keys():
+            stgs_grd = og.ground_object(obj_placeholder = _1_detected_data['ts'])
             if stgs_grd is not None:
-                self._2_grounded_data['ts'] = deepcopy(stgs_grd)
-
+                _2_grounded_data['ts'] = deepcopy(stgs_grd)
+        
+        return _2_grounded_data
     
     ''' Property readers concept 
         Data are saved in grounded data
