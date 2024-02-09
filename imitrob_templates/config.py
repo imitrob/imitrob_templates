@@ -1,4 +1,6 @@
 
+import numpy as np
+
 # MM Dataset (4), Crow (1)
 PickTaskConfig = {
     'id': 1,
@@ -212,6 +214,7 @@ PutIntoTaskConfig = {
     'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
                      's+': ['reachable', 'stackable'], 's-': ['full-stack'], 'st': ['container']},
     'execution_config_params': {
+        'move_near_z_offset': 0.15,
     },
     
     'mm_pars_compulsary': ['template', 'selections', 'storages'],
@@ -267,4 +270,40 @@ OpenTaskConfig = {
     },
     
     'mm_pars_compulsary': ['template', 'storages'],
+
+    'execution_config_params': {
+        'move_near_z_offset': 0.15,
+        'move_final_z_offset': 0.00,
+        'drawer_open_to_close_dist': 0.15,
+        'drawer_center_to_handle': 0.214,
+    },
 }
+
+CloseTaskConfig = {
+    'id': 18,
+    'name': 'close',
+    'pars_compulsary': ['target_action', 'target_storage'],
+    'pars_voluntary': [],
+    
+    'target_object_penalization': {}, # shouldn't be accessed
+    'target_storage_penalization': {},
+    
+    'requirements': {'+': [], '-': [], # TODO
+                     's+': [], 's-': []}, # TODO
+    'execution_config_params': {
+    },
+    
+    'mm_pars_compulsary': ['template', 'storages'],
+
+    'execution_config_params': {
+        'move_near_z_offset': 0.15,
+        'move_final_z_offset': 0.00,
+        'drawer_center_to_handle': 0.214,
+    },
+}
+
+NonMovePartRelations = {
+    'drawer_socket': 'drawer_cabinet',
+}
+
+TEMPORARY_VISION_ERROR_CORRECTION_POINT = np.array([0.03, 0.0, 0.0])

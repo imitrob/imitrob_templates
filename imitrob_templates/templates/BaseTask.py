@@ -1,5 +1,6 @@
 import enum, time
 from typing import Any, Callable, Tuple
+from imitrob_hri.imitrob_nlp.modules.ObjectGrounder import ObjectsGroundedData
 from imitrob_hri.imitrob_nlp.modules.ObjectDetector import ObjectDetector
 from imitrob_hri.imitrob_nlp.modules.ObjectGrounder import ObjectGrounder
 from imitrob_hri.imitrob_nlp.modules.UserInputManager import UserInputManager
@@ -120,7 +121,7 @@ class BaseTask(Template):
         return self.compare_types - 1  # complexity = 1
 
         
-    def ground_realpositions(self, s):
+    def ground_scene(self, s):
         self.scene = s
 
     def task_property_penalization_target_objects(self, property):
@@ -133,12 +134,12 @@ class BaseTask(Template):
     def task_property_penalization_target_objects(self, property):
         return self.target_storage_penalization[property]
 
-    def execute(self, robot_client, mode=TaskExecutionMode.BASIC, **kwargs) -> Tuple[bool, str]:
+    def execute(self, robot_client, ontology_client, mode=TaskExecutionMode.BASIC, **kwargs) -> Tuple[bool, str]:
         if mode not in self._modes:
             raise NotImplementedError(f"Mode {mode} is not implemented for task {self.name}!")
         mode_steps_generator = self._modes[mode]
         try:
-            steps = mode_steps_generator(robot_client, **kwargs)
+            steps = mode_steps_generator(robot_client, ontology_client, **kwargs)
         except BaseException as e:
             return False, f"Error generating steps for task {self.name}!\n{e}"
 
@@ -177,26 +178,44 @@ class BaseTask(Template):
             return
     
 
-    def match_intent(self, intent : Intent, scene) -> bool:
-        ''' Same for all tasks
-            Checks general classes in ontology (not in real world instances) 
-        (Idea: Runs in NLP package and then in modality merger)
+    # def match_intent(self, intent : Intent, scene) -> bool:
+    #     ''' Same for all tasks
+    #         Checks general classes in ontology (not in real world instances) 
+    #     (Idea: Runs in NLP package and then in modality merger)
         
-        Returns:
-            match (Bool): 
-        '''
+    #     Returns:
+    #         match (Bool): 
+    #     '''
 
-        # is object on the scene?
-        if scene.get_object_by_name(intent.target_object) is None:
+    #     # is object on the scene?
+    #     if scene.get_object_by_name(intent.target_object) is None:
+    #         return False
+    #     # target_action must be name of template
+    #     if self.name != to_default_name(intent.target_action):
+    #         return False
+
+    #     ogdata = ObjectsGroundedData()
+    #     ogdata.to = ProbsVector(intent.object_probs, intent.objects)
+    #     self._2_grounded_data['to'] = ogdata
+
+    #     return True
+    
+    def match_parsed_hricommand(self, hricommand, scene):
+
+        ogdata = ObjectsGroundedData()
+        ogdata.to = ProbsVector(hricommand['object_probs'], hricommand['objects'], c='default')
+        self._2_grounded_data['to'] = ogdata
+
+        if scene.get_object_by_name(self.target_object) is None:
             return False
         # target_action must be name of template
-        if self.name != to_default_name(intent.target_action):
+        if self.name != to_default_name(self.target_action):
             return False
+        
+        print("_2_grounded_data",self._2_grounded_data)
 
-        self.target_object = intent.target_object
+        return True        
 
-        return True
-    
     
     ''' MM compatibility '''
     def has_compare_type(self, compare_type):

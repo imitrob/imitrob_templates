@@ -14,6 +14,7 @@ from context_based_gesture_operation.srcmodules.Scenes import Scene as Scene2
 from context_based_gesture_operation.srcmodules.Objects import Object as Object2
 from imitrob_templates.templates.BaseTask import TaskExecutionMode
 from imitrob_hri.imitrob_nlp.TemplateFactory import create_template
+from imitrob_templates.small_ontology_scene_reader import SceneOntologyClient
 
 class HRICommandRunnerNode(Node):
     def __init__(self, rosnode_name = 'HRI_runner'):
@@ -22,9 +23,9 @@ class HRICommandRunnerNode(Node):
         self.robot_client = RobotActionClient(self)
         self.robot_client.start()
         
-        self.oc = OntologyClientAdHoc(self)
+        self.oc = SceneOntologyClient(self)
         
-        s = self.oc.get_updated_scene()
+        s = self.oc.get_scene2()
 
         self.hricommand_queue = []
         self.hric_sub = self.create_subscription(HRICommand,
@@ -78,12 +79,13 @@ class HRICommandRunnerNode(Node):
         if task is None: return # template not found; quitting
         
         #task.match_intent(i, self.oc.crowracle)
-        task.match_intent(i, self.oc.get_updated_scene())
+        scene2 = self.oc.get_scene2()
+        # task.match_intent(i, scene2)
+        task.match_parsed_hricommand(receivedHRIcommand_parsed, scene2)
         #task.ground(s=self.oc.get_objects_from_onto())
 
-        print(self.oc.get_updated_scene())
-        task.target_object = target_object
-        task.ground_realpositions(self.oc.get_updated_scene())
+        print(scene2)
+        task.ground_scene(scene2)
         ## tihs iwll be in grounder
 
         print("********************")
@@ -91,124 +93,11 @@ class HRICommandRunnerNode(Node):
             print(f"{k}: {v}")
         print("********************")
 
-        ret_bool, ret = task.execute(self.robot_client, mode=TaskExecutionMode.BASIC)
+        ret_bool, ret = task.execute(self.robot_client, self.oc, mode=TaskExecutionMode.BASIC)
         
         print(f"handle_hricommand ended: {ret_bool}, message: {ret}")
         
 
-
-''' Just for the test '''
-class OntologyClientAdHoc():
-    def __init__(self, rosnode):
-        self.crowracle = CrowtologyClient(node=rosnode)
-        self.onto = self.crowracle.onto
-        
-        # self.add_dummy_cube()
-        # self.add_dummy_cube()
-        # print(self.get_objects_from_onto())
-        print("Ontology Client Ready")
-        
-    @staticmethod
-    def mocked_update_scene():
-        s = None
-        s = Scene2(init='object', random=False)
-        sl.scene = s
-        return s
-
-
-    NAME2TYPE = {
-        'cube': 'Object',
-        
-    }
-
-    def get_updated_scene(self):
-        
-        s = None
-        s = Scene2(init='', objects=[], random=False)
-        
-        objects = self.get_objects_from_onto()
-        ''' object list; item is dictionary containing uri, id, color, color_nlp_name_CZ, EN, nlp_name_CZ, nlp_name_EN; absolute_location'''
-
-        '''
-        import rdflib
-        uri = rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#test_CUBE_498551_od_498551')
-        '''
-        # [{'uri': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#test_CUBE_498551_od_498551'), 'id': 'od_498551', 'color': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#COLOR_GREEN'), 'color_nlp_name_CZ': 'zelená', 'color_nlp_name_EN': 'green', 'nlp_name_CZ': 'kostka', 'nlp_name_EN': 'cube', 'absolute_location': [-0.34157065, 0.15214929, -0.24279054]}]
-        # [{'uri': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#test_CUBE_498551_od_498551'), 'id': 'od_498551', 'color': rdflib.term.URIRef('http://imitrob.ciirc.cvut.cz/ontologies/crow#COLOR_GREEN'), 'color_nlp_name_CZ': 'zelená', 'color_nlp_name_EN': 'green', 'nlp_name_CZ': 'kostka', 'nlp_name_EN': 'cube', 'absolute_location': [-0.34157065, 0.15214929, -0.24279054]}]
-
-        # Colors:
-        # [COLOR_GREEN. 
-
-        for object in objects:
-            ''' o is dictionary containing properties '''
-            uri = object['uri']
-            id = object['id']
-
-            # created name `wheel_od_0` extracted from 'http://imitrob.ciirc.cvut.cz/ontologies/crow#wheel_od_0'
-            name = str(object['uri']).split("#")[-1]
-
-            color = object['color']
-            color_nlp_name_CZ = object['color_nlp_name_CZ']
-            color_nlp_name_EN = object['color_nlp_name_EN']
-            nlp_name_CZ = object['nlp_name_CZ']
-            nlp_name_EN = object['nlp_name_EN']
-            absolute_location = object['absolute_location']
-            
-            o = Object2(name=name, position_real=np.array(absolute_location), random=False)
-            # o.quaternion = np.array(object['pose'][1])
-            # o.color_uri = color
-            o.color = color_nlp_name_EN
-            # o.color_name_CZ = color_nlp_name_CZ
-            
-            o.nlp_name_CZ = nlp_name_CZ
-            o.nlp_name_EN = nlp_name_EN
-            o.crow_id = id
-            o.crow_uri = uri
-            
-            s.objects.append(o)
-
-        return s
-
-    def match_object_in_onto(self, obj):
-        onto = self.get_objects_from_onto()
-        obj = json.loads(obj)
-        for o in onto:
-           url = str(o["uri"])
-           if url is not None and url == obj[0]["target"][0]:
-              return o
-        return None
-        
-        
-    def add_dummy_cube(self):
-        o_list = self.get_objects_from_onto()
-        if len(o_list) == 0:
-           print("Adding a dummy cube into ontology")
-           self.crowracle.add_test_object("CUBE")
-        
-    def get_objects_from_onto(self):
-        o_list = self.crowracle.getTangibleObjectsProps()
-        #print("Onto objects:")
-        #print(o_list)
-        return o_list
-        
-    def get_action_from_cmd(self, cmd):
-        action = json.loads(cmd)[0]["action_type"].lower()
-        if action in ACTION_TRANSL.keys():
-           return ACTION_TRANSL[action]
-        else:
-           print("No czech translation for action " + action)
-           return action
-        
-        
-    def publish_trajectory(self, trajectory):
-        #TODO choose proper msg type
-        action = json.dumps(trajectory)
-        msg = StampedString()
-        msg.header.stamp = self.get_clock().now().to_msg()
-        msg.data = action
-        print(f'Publishing {msg.data}')
-        self.trajectory_publisher.publish(msg)
-        
 
 def main():
     rclpy.init()

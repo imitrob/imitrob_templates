@@ -31,7 +31,7 @@ class HRICommandRunner(Node):
 
         print(self.oc.get_updated_scene())
         input("check updated scene !")
-        task.ground_realpositions(self.oc.get_updated_scene())
+        task.ground_scene(self.oc.get_updated_scene())
 
         
         print("********************")

@@ -20,6 +20,7 @@ OFFSETS = {
 'cube holes': 0.01,
 'cube': 0.01,
 'test_CUBE': 0.01,
+'drawer socket': 0.02, #0.025
 }
 
 def get_z_offset_from_center(name):

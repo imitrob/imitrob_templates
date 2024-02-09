@@ -74,7 +74,7 @@ class PickTask(BaseTask):
         # Returns list of grounded data
         return True, relevant_data
 
-    def blueprint_mode_1(self, robot_client):
+    def blueprint_mode_1(self, robot_client, ontology_client):
         '''
         Involving self vars:
             object_names (String[] or Int[]): Unique IDs of objects
@@ -139,7 +139,7 @@ class PickTask(BaseTask):
 
         def check_postconditions(relevant_data):
 
-            if self.check_grasped(): return False
+            # if self.check_grasped(): return False
 
             return True, relevant_data
 
