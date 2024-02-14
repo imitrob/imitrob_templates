@@ -41,9 +41,9 @@ class PassTask(BaseTask):
         assert o is not None
 
         ret = None
-        if ( o.properties['reachable'] and  # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
-             o.properties['pickable'] and  # When object is not pickable it cannot be picked at all
-             not o.properties['glued'] ):
+        if ( o.properties['reachable']()[1] and  # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
+             o.properties['pickable']()[1] and  # When object is not pickable it cannot be picked at all
+             not o.properties['glued']()[1] ):
             ret = True
         else:
             ret = False

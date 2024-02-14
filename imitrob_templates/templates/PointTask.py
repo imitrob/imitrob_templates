@@ -40,7 +40,7 @@ class PointTask(BaseTask):
         assert o is not None
 
         ret = None
-        if ( o.properties['reachable'] # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
+        if ( o.properties['reachable']()[1] # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
              ):
             ret = True
         else:

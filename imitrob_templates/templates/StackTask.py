@@ -49,14 +49,14 @@ class StackTask(BaseTask):
         #assert s is not None
 
         ret = None
-        if (o.properties['reachable'] and
-            o.properties['pickable'] and
-            not o.properties['full-stack'] and
-            not o.properties['glued'] and
+        if (o.properties['reachable']()[1] and
+            o.properties['pickable']()[1] and
+            not o.properties['full-stack']()[1] and
+            not o.properties['glued']()[1] and
             (s is None or ( # if condition on s given it is checked
-                s.properties['reachable'] and
-                s.properties['stackable'] and
-                not s.properties['full-stack']
+                s.properties['reachable']()[1] and
+                s.properties['stackable']()[1] and
+                not s.properties['full-stack']()[1]
                 ))
             ):
             ret = True

@@ -40,7 +40,7 @@ class UnglueTask(BaseTask):
         assert o is not None
 
         ret = None
-        if ( o.properties['glued'] ):
+        if ( o.properties['glued']()[1] ):
             ret = True
         else:
             ret = False

@@ -39,13 +39,14 @@ class PushTask(BaseTask):
         #assert s is None
         
         ret = None
-        if (o.properties['reachable'] and
-            o.properties['pushable'] and
-            not o.properties['glued']
+        if (o.properties['reachable']()[1] and
+            o.properties['pushable']()[1] and
+            not o.properties['glued']()[1]
             ):
             ret = True
         else:
             ret = False
         
+        print("rrrrrrr", ret, " object: ", o.properties['reachable'], o.properties['pushable'])
         assert super().is_feasible(o,s) == ret
         return ret

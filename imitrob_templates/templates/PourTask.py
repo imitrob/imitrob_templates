@@ -50,15 +50,15 @@ class PourTask(BaseTask):
         #assert s is not None
         
         ret = None
-        if (o.properties['reachable'] and
-            o.properties['pickable'] and
-            not o.properties['full-stack'] and
-            o.properties['full-liquid'] and
-            not o.properties['glued'] and 
+        if (o.properties['reachable']()[1] and
+            o.properties['pickable']()[1] and
+            not o.properties['full-stack']()[1] and
+            o.properties['full-liquid']()[1] and
+            not o.properties['glued']()[1] and 
             (s is None or ( # if condition on s given it is checked
-                s.properties['reachable'] and
-                not s.properties['full-stack'] and 
-                not s.properties['full-liquid'] and
+                s.properties['reachable']()[1] and
+                not s.properties['full-stack']()[1] and 
+                not s.properties['full-liquid']()[1] and
                 s.is_type('liquid-container')
                 ))
             ):
