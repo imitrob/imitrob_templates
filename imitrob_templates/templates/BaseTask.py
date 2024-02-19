@@ -133,8 +133,8 @@ class BaseTask(Template):
         return self.pars_compulsary
 
     @property
-    def complexity(self):
-        return self.compare_types - 1  # complexity = 1
+    def complexity(self): # 0, 1, 2
+        return len(self.compare_types) - 1  # complexity = 1
 
         
     def ground_scene(self, s):
