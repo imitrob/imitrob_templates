@@ -94,6 +94,22 @@ class BaseTask(Template):
             if o.properties[req]()[1]:
                 return False
         
+        # If any Positive '+' requirement is not fulfilled, return False - not feasible 
+        if 's+' in self.feasibility_requirements:
+            for req in self.feasibility_requirements['s+']:
+                if not s.properties[req]()[1]:
+                    return False
+            # If any Negative '-' requirement is true, reutrn False - not feasible
+            for req in self.feasibility_requirements['s-']:
+                if s.properties[req]()[1]:
+                    return False
+                
+        if 'st' in self.feasibility_requirements:
+            for req in self.feasibility_requirements['st']:
+                if not s.is_type(req):
+                    return False
+
+
         # All requirement are fulfilled
         return True
 

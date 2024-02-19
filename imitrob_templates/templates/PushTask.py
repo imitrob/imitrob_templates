@@ -47,6 +47,5 @@ class PushTask(BaseTask):
         else:
             ret = False
         
-        print("rrrrrrr", ret, " object: ", o.properties['reachable'], o.properties['pushable'])
         assert super().is_feasible(o,s) == ret
         return ret
