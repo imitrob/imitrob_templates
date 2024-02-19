@@ -82,8 +82,8 @@ class BaseTask(Template):
             self.last_state = msg
             self.get_last_state_flag = False
     '''
-    def is_feasible(self, o, s=None):
-        assert o is not None
+    def is_feasible(self, o=None, s=None):
+        # assert o is not None
         
         # If any Positive '+' requirement is not fulfilled, return False - not feasible 
         for req in self.feasibility_requirements['+']:
