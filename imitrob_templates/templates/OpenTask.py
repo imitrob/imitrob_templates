@@ -139,7 +139,7 @@ class OpenTask(BaseTask):
         T_base_openedobject[:3, 3] = np.array(drawer_cabinet.absolute_location)
 
         T_openedobject_maxopenedhandle = np.eye(4)
-        T_openedobject_maxopenedhandle[:3, 3] = np.array([0.0, center_to_handle + 0.05, 0.0]) # measured to center socket to handle
+        T_openedobject_maxopenedhandle[:3, 3] = np.array([0.0, center_to_handle + 0.01, 0.0]) # measured to center socket to handle
 
         T_base_maxopenedobjecthandle = np.matmul(T_base_openedobject, T_openedobject_maxopenedhandle)
         T_base_maxopenedobjecthandle_rotvec = R.from_rotvec(T_base_maxopenedobjecthandle[:3, :3])
@@ -247,6 +247,23 @@ class OpenTask(BaseTask):
             robot_client.move_pose(p=[0.5,0.0,0.3], q=[1.0,0.0,0.0,0.0])
 
             return True, relevant_data
+
+        def is_drawer_opened():
+            openness_data = ontology_client.crowracle.read_drawer_openness_level()
+            
+            # choose the right drawer
+            openness_level = None
+            drawer_name = relevant_data['target_opened_object'].name
+            for d in openness_data:
+                if str(d[0].fragment) == drawer_name:
+                    openness_level = float(d[1])
+                    break
+            
+            if openness_level is None:
+                print("WARNING: Drawer not found")
+                return False, relevant_data
+
+            is_open = openness_level > 0.5
 
         def check_postconditions(relevant_data):
             # robot needs to move out for the camera to see the marker

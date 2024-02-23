@@ -13,7 +13,11 @@ class PublishHRICommand(Node):
 
         self.soc = SceneOntologyClient(self)
 
-
+        scene = self.soc.get_scene2()
+        
+        # for n,o_name in enumerate(scene.O):
+        #     print(f"object: {o_name}, position: {scene.objects[n].position_real}")
+        # input("WAIT")
 
 def run_template(rosnode, target_action, object_name='cube_holes'):
 
@@ -22,16 +26,17 @@ def run_template(rosnode, target_action, object_name='cube_holes'):
 
         scene = rosnode.soc.get_scene2()
         target_object = None
-        for o_name in scene.O:
+        for n,o_name in enumerate(scene.O):
+            print(f"object: {o_name}, position: {scene.objects[n].position_real}")
             if object_name in o_name: # e.g.: 'cube_holes_od_0'
                 target_object = o_name
                 break
         if target_object is None:
-            print("cube (cube_holes) not found on the scene! Waiting and trying again")
+            print(f"object ({object_name}) not found on the scene! Waiting and trying again")
             time.sleep(5)
             return
         else:
-            print(f"cube chosen ({target_object})")
+            print(f"object {object_name} chosen ({target_object})")
 
     else:
         print("Don't need to ground scene object")

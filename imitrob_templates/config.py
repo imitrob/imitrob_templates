@@ -306,4 +306,4 @@ NonMovePartRelations = {
     'drawer_socket': 'drawer_cabinet',
 }
 
-TEMPORARY_VISION_ERROR_CORRECTION_POINT = np.array([0.03, 0.0, 0.0])
+TEMPORARY_VISION_ERROR_CORRECTION_POINT = np.array([0.02, 0.0, 0.0])

@@ -87,7 +87,8 @@ class SceneOntologyClient():
             o.crow_id = id
             o.crow_uri = uri
             
-            s.objects.append(o)
+            if name not in s.object_names:
+                s.objects.append(o)
 
         return s
     
@@ -119,6 +120,7 @@ class SceneOntologyClient():
         # [COLOR_GREEN.
         
         scene_objects = []
+        object_names = []
         for object in objects:
             ''' o is dictionary containing properties '''
             uri = object['uri']
@@ -160,8 +162,9 @@ class SceneOntologyClient():
             # o.nlp_name_EN = nlp_name_EN
             # o.crow_id = id
             # o.crow_uri = uri
-            
-            scene_objects.append(o)
+            if name not in object_names:
+                object_names.append(name)
+                scene_objects.append(o)
         
         s = None
         storages = []

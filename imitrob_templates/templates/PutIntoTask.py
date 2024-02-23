@@ -88,6 +88,7 @@ class PutIntoTask(BaseTask):
         # Load target_object using its ID
         relevant_data: Dict[str, Any] = {
             'target_object': self.scene.get_object_by_name(target_object_name),
+            'target_opened_object': self.scene.get_object_by_name('drawer_socket'),
         }
 
         # Check once again that taget_object is detected
@@ -95,6 +96,23 @@ class PutIntoTask(BaseTask):
 
         # Returns list of grounded data
         return True, relevant_data
+
+    def is_drawer_opened(self, relevant_data, ontology_client):
+        openness_data = ontology_client.crowracle.read_drawer_openness_level()
+        
+        # choose the right drawer
+        openness_level = None
+        drawer_name = relevant_data['target_opened_object'].name
+        for d in openness_data:
+            if str(d[0].fragment) == drawer_name:
+                openness_level = float(d[1])
+                break
+        
+        if openness_level is None:
+            print("WARNING: Drawer not found")
+            return False, relevant_data
+
+        return openness_level > 0.5
 
     def blueprint_mode_1(self, robot_client, ontology_client):
         '''
@@ -125,19 +143,21 @@ class PutIntoTask(BaseTask):
             q = UnitQuaternion(rot).vec_xyzs
 
             robot_client.move_pose(p, q)
-            robot_client.open_gripper()
 
             return True, relevant_data
 
-        def move_3(relevant_data):
+
+        def move_2(relevant_data):
             # p, q = relevant_data['p'], relevant_data['q']
             # ''' Move up littlebit '''
             # p[2] += self.execution_config_params['move_final_z_offset']
 
             # robot_client.move_pose(p, q)
-            
-
-            return True, relevant_data
+            if not self.is_drawer_opened(relevant_data, ontology_client):
+                return False, relevant_data
+            else:
+                robot_client.open_gripper()
+                return True, relevant_data
 
         def check_postconditions(relevant_data):
 
@@ -145,4 +165,4 @@ class PutIntoTask(BaseTask):
 
             return True, relevant_data
 
-        return check_preconditions, self.get_ground_data, move_1, check_postconditions
+        return check_preconditions, self.get_ground_data, move_1, move_2, check_postconditions
