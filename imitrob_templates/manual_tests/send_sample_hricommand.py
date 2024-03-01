@@ -107,7 +107,7 @@ def main_test():
 
     run_template(rosnode, target_action='open', object_name='drawer_socket')
     input()
-    run_template(rosnode, target_action='pick', object_name='cube_holes')
+    run_template(rosnode, target_action='pick', object_name='cube')
     input()
     run_template(rosnode, target_action='put-into', object_name='drawer_socket')
     input()

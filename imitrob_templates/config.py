@@ -20,7 +20,8 @@ PickTaskConfig = {
         },
     'target_storage_penalization': {},
     # hard requirements
-    'requirements': {'+': ['reachable', 'pickable'], '-': ['glued']},
+    # 'requirements': {'+': ['reachable', 'pickable'], '-': ['glued']},
+    'requirements': {'+': ['reachable', 'pickable'], '-': ['glued','full-stack']},
     'execution_config_params': {
         'move_near_z_offset': 0.1,
         'move_final_z_offset': 0.04,
@@ -157,7 +158,8 @@ PushTaskConfig = {
     'target_object_penalization': {}, # shouldn't be accessed
     'target_storage_penalization': {},
     
-    'requirements': {'+': ['reachable', 'pushable'], '-': ['glued']},
+    # 'requirements': {'+': ['reachable', 'pushable'], '-': ['glued']},
+    'requirements': {'+': ['reachable', 'pushable'], '-': ['glued', 'full-stack']},
     'execution_config_params': {
     },
     
@@ -191,8 +193,11 @@ PourTaskConfig = {
     # 'synonyms': ['pour', 'pour into'],
     'mm_pars_compulsary': ['template', 'selections', 'storages'],
     
+    # 'requirements': {'+': ['reachable', 'pickable', 'full-liquid'], '-': ['full-stack', 'glued'],
+    #                  's+':['reachable'], 's-': ['full-stack', 'full-liquid'], 'st': ['liquid-container']},
     'requirements': {'+': ['reachable', 'pickable', 'full-liquid'], '-': ['full-stack', 'glued'],
-                     's+':['reachable'], 's-': ['full-stack', 'full-liquid'], 'st': ['liquid-container']},
+                     's+':['reachable'], 's-': ['full-stack', 'full-liquid','full-container'], 'st': ['liquid-container']},
+
     'execution_config_params': {
     },
     
@@ -211,8 +216,10 @@ PutIntoTaskConfig = {
     'target_object_penalization': {}, # shouldn't be accessed
     'target_storage_penalization': {},
     
+    # 'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
+    #                  's+': ['reachable', 'stackable'], 's-': ['full-stack'], 'st': ['container']},
     'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
-                     's+': ['reachable', 'stackable'], 's-': ['full-stack'], 'st': ['container']},
+                     's+': ['reachable'], 's-': ['full-stack','full-liquid','full-container'], 'st': ['container']},
     'execution_config_params': {
         'move_near_z_offset': 0.15,
     },
@@ -230,6 +237,8 @@ StackTaskConfig = {
     'target_object_penalization': {}, # shouldn't be accessed
     'target_storage_penalization': {},
     
+    # 'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
+    #                  's+': ['reachable', 'stackable'], 's-': ['full-stack']},
     'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
                      's+': ['reachable', 'stackable'], 's-': ['full-stack']},
     'execution_config_params': {
@@ -306,4 +315,4 @@ NonMovePartRelations = {
     'drawer_socket': 'drawer_cabinet',
 }
 
-TEMPORARY_VISION_ERROR_CORRECTION_POINT = np.array([0.02, 0.0, 0.0])
+TEMPORARY_VISION_ERROR_CORRECTION_POINT = np.array([0.03, 0.0, 0.0])

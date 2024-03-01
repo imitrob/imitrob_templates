@@ -80,7 +80,17 @@ def get_static_properties(name):
     """    
     
     properties_dict = {
-        'cube holes': { 
+        'cube_holes': { 
+            'name': 'box',
+            'size': 0.04, # [m]
+            'roundness-top': 0.9, # [normalized belief rate]
+            'weight': 0.04, # [kg]
+            'contains': 0., # normalized rate being full 
+            'contain_item': False, # how many items contains
+            'types': ['object'],
+            'glued': False
+        },
+        'cube': { 
             'name': 'box',
             'size': 0.04, # [m]
             'roundness-top': 0.9, # [normalized belief rate]

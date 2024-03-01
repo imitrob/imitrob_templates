@@ -1,5 +1,5 @@
 
-import rclpy
+import rclpy, yaml
 from rclpy.node import Node
 
 from crow_ontology.crowracle_client import CrowtologyClient
@@ -95,7 +95,7 @@ class SceneOntologyClient():
     
     
     
-    def get_scene3(self):
+    def get_scene3(self, load_config=True):
         
         objects = self.crowracle.getTangibleObjectsProps()
         
@@ -107,6 +107,8 @@ class SceneOntologyClient():
         #     print([(g["obj"], g["stamp"], g["enabled"].toPython()) for g in res])
 
         print(objects)
+        for o in objects:
+            print(o['uri'])
         ''' object list; item is dictionary containing uri, id, color, color_nlp_name_CZ, EN, nlp_name_CZ, nlp_name_EN; absolute_location'''
 
         '''
@@ -119,6 +121,12 @@ class SceneOntologyClient():
         # Colors:
         # [COLOR_GREEN.
         
+        if load_config:
+            with open("/home/imitlearn/crow-base_robot_control/crow-base/config/crow_hri/scene_properties.yaml") as f:
+                scene_properties = yaml.safe_load(f)
+        else:
+            scene_properties = None
+
         scene_objects = []
         object_names = []
         for object in objects:
@@ -138,21 +146,26 @@ class SceneOntologyClient():
             
             # get_the_uri and from it the size, roundness-top, weight, contains, types are given
             
-            properties = get_static_properties(name)
+            name = name.split("_od_")[0]
+            print(scene_properties, name, name in scene_properties) 
+            if load_config:
+                if scene_properties is not None and name in scene_properties:
+                    o = Object3(observations={'name': name}, properties_config=scene_properties[name])
+            else:
+                properties = get_static_properties(name)
 
-            observations = {
-                'name': name,
-                'size': properties['size'], # [m]
-                'position': absolute_location, # [m,m,m]
-                'roundness-top': properties['roundness-top'], # [normalized belief rate]
-                'weight': properties['weight'], # [kg]
-                'contains': properties['contains'], # normalized rate being full 
-                'contain_item': properties['contain_item'], # how many items contains
-                'types': properties['types'],
-                'glued': properties['glued'],
-            }
-            
-            o = Object3(observations)
+                observations = {
+                    'name': name,
+                    'size': properties['size'], # [m]
+                    'position': absolute_location, # [m,m,m]
+                    'roundness-top': properties['roundness-top'], # [normalized belief rate]
+                    'weight': properties['weight'], # [kg]
+                    'contains': properties['contains'], # normalized rate being full 
+                    'contain_item': properties['contain_item'], # how many items contains
+                    'types': properties['types'],
+                    'glued': properties['glued'],
+                }
+                o = Object3(observations)
             # o.quaternion = np.array(object['pose'][1])
             # o.color_uri = color
             # o.color = color_nlp_name_EN
