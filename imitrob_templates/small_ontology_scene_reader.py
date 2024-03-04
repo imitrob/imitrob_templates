@@ -106,9 +106,9 @@ class SceneOntologyClient():
         #     res = self.onto.query(self.crowracle._query_check_time_enable_disable)
         #     print([(g["obj"], g["stamp"], g["enabled"].toPython()) for g in res])
 
-        print(objects)
-        for o in objects:
-            print(o['uri'])
+        # print(objects)
+        # for o in objects:
+        #     print(o['uri'])
         ''' object list; item is dictionary containing uri, id, color, color_nlp_name_CZ, EN, nlp_name_CZ, nlp_name_EN; absolute_location'''
 
         '''
@@ -122,13 +122,15 @@ class SceneOntologyClient():
         # [COLOR_GREEN.
         
         if load_config:
-            with open("/home/imitlearn/crow-base_robot_control/crow-base/config/crow_hri/scene_properties.yaml") as f:
+            with open("/home/imitlearn/crow-base/config/crow_hri/scene_properties.yaml") as f:
                 scene_properties = yaml.safe_load(f)
         else:
             scene_properties = None
 
         scene_objects = []
         object_names = []
+        scene_storages = []
+        storage_names = []
         for object in objects:
             ''' o is dictionary containing properties '''
             uri = object['uri']
@@ -147,7 +149,7 @@ class SceneOntologyClient():
             # get_the_uri and from it the size, roundness-top, weight, contains, types are given
             
             name = name.split("_od_")[0]
-            print(scene_properties, name, name in scene_properties) 
+            # print(scene_properties, name, name in scene_properties) 
             if load_config:
                 if scene_properties is not None and name in scene_properties:
                     o = Object3(observations={'name': name}, properties_config=scene_properties[name])
@@ -175,14 +177,19 @@ class SceneOntologyClient():
             # o.nlp_name_EN = nlp_name_EN
             # o.crow_id = id
             # o.crow_uri = uri
-            if name not in object_names:
-                object_names.append(name)
-                scene_objects.append(o)
+            if name not in object_names and name not in storage_names:
+                if o.is_type("object"):
+                    object_names.append(name)
+                    scene_objects.append(o)
+                elif o.is_type("storage"):
+                    storage_names.append(name)
+                    scene_storages.append(o)
+                else:
+                    raise ValueError(f"Unknown object type for object {o}")
         
         s = None
-        storages = []
         template_names = ['pick up', 'point']
-        s = Scene3(scene_objects, storages, template_names)
+        s = Scene3(scene_objects, scene_storages, template_names)
         
         return s        
 
