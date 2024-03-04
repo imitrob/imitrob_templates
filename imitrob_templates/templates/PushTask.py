@@ -41,7 +41,8 @@ class PushTask(BaseTask):
         ret = None
         if (o.properties['reachable']()[1] and
             o.properties['pushable']()[1] and
-            not o.properties['glued']()[1]
+            not o.properties['glued']()[1] and
+            not o.properties['full-stack']()[1]
             ):
             ret = True
         else:

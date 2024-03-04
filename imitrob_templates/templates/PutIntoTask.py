@@ -64,6 +64,8 @@ class PutIntoTask(BaseTask):
                 s.properties['reachable']()[1] and
                 s.properties['stackable']()[1] and
                 not s.properties['full-stack']()[1] and
+                not s.properties['full-liquid']()[1] and
+                not s.properties['full-container']()[1] and
                 s.is_type('container')
                 ))
             ):
