@@ -42,7 +42,8 @@ class PickTask(BaseTask):
         ret = None
         if ( o.properties['reachable']()[1] and  # When object is not reachable, I still may want to   pick it, but the constraint action is penalized
              o.properties['pickable']()[1] and  # When object is not pickable it cannot be picked at all
-             not o.properties['glued']()[1] ):
+             not o.properties['glued']()[1] and 
+             not o.properties['full-stack']()[1] ):
             ret = True
         else:
             ret = False

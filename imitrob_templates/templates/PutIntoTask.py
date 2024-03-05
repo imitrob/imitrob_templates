@@ -56,6 +56,7 @@ class PutIntoTask(BaseTask):
         #assert s is not None
 
         ret = None
+        # print('is type container:'+f'{s.name}'+f'{s.is_type("container")}')
         if (o.properties['reachable']()[1] and
             o.properties['pickable']()[1] and
             not o.properties['full-stack']()[1] and
