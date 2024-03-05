@@ -63,7 +63,6 @@ class PutIntoTask(BaseTask):
             not o.properties['glued']()[1] and
             (s is None or ( # if condition on s given it is checked
                 s.properties['reachable']()[1] and
-                s.properties['stackable']()[1] and
                 not s.properties['full-stack']()[1] and
                 not s.properties['full-liquid']()[1] and
                 not s.properties['full-container']()[1] and
