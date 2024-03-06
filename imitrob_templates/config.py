@@ -219,7 +219,7 @@ PutIntoTaskConfig = {
     # 'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
     #                  's+': ['reachable', 'stackable'], 's-': ['full-stack'], 'st': ['container']},
     'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
-                     's+': ['reachable', 'stackable'], 's-': ['full-stack','full-liquid','full-container'], 'st': ['container']},
+                     's+': ['reachable'], 's-': ['full-stack','full-liquid','full-container'], 'st': ['container']},
     'execution_config_params': {
         'move_near_z_offset': 0.15,
     },
