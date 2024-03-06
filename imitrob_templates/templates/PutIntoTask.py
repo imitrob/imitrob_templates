@@ -21,7 +21,7 @@ class PutIntoTask(BaseTask):
         
     @staticmethod
     def detect_fun(tagged_text, templ_det, lang):
-        if tagged_text.contains_text(templ_det[lang]['put']):
+        if tagged_text.contains_text(templ_det[lang]['put-into']):
             return True, 'put-into'
         else:
             return False, ''
