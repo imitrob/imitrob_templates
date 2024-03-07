@@ -149,7 +149,6 @@ class SceneOntologyClient():
             # get_the_uri and from it the size, roundness-top, weight, contains, types are given
             
             name = name.split("_od_")[0]
-            # print(scene_properties, name, name in scene_properties) 
             if load_config:
                 if scene_properties is not None and name in scene_properties:
                     o = Object3(observations={'name': name}, properties_config=scene_properties[name])
