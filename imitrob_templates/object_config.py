@@ -15,12 +15,14 @@ def to_default_name(name):
 OFFSETS = {
 'sugar box': 0.085+0.04, 'cracker box': 0.107+0.03, 'pudding box': 0.045+0.07,
 'mustard bottle': 0.095+0.07, 'bowl': 0.05, 'potted meat can': 0.02, 'foam brick': 0.0,
-'tomato soup can': 0.03, 'drawer': 0.3, 'mug': 0.03, 'cube': 0.02,
+'tomato soup can': 0.03, 'drawer cabinet': 0.3, 'mug': 0.03, 'cube': 0.02,
 'wheel': 0.01,
 'cube holes': 0.01,
 'cube': 0.01,
 'test_CUBE': 0.01,
-'drawer socket': 0.02, #0.025
+'drawer': 0.02, #0.025
+'can': 0.03,
+'crackers': 0.04
 }
 
 def get_z_offset_from_center(name):
@@ -48,6 +50,7 @@ OFFSETS_Z_ROT = {
 'tomato soup can': 0.0, 'cube': 0.0,
 'wheel': 0.0,
 'cube holes': 0.0,
+'can': np.pi/2,
 }
 
 def get_z_offset_rot(name):

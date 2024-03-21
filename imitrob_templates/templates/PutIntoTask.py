@@ -116,6 +116,40 @@ class PutIntoTask(BaseTask):
 
         return openness_level > 0.5
 
+    def get_mode_1_move_1(self, relevant_data, ontology_client):
+        ''' Move above the picking object '''
+        p = deepcopy(np.array(relevant_data['target_object'].absolute_location))
+
+        p += TEMPORARY_VISION_ERROR_CORRECTION_POINT
+        p[2] += self.execution_config_params['move_near_z_offset']
+        p[2] += get_z_offset_from_center(relevant_data['target_object'].name)
+        p[1] += 0.05
+
+        ''' fix offset z rot '''
+        offset_z_rot = 0.0
+        q_ = np.array([1.,0.,0.,0.])
+        q = UnitQuaternion([0.0,0.0,1.0,0.0]) # w,x,y,z
+        q_2 = UnitQuaternion([q_[3], *q_[0:3]])
+
+        rot = sm.SO3(q.R) * sm.SO3.Rz(q_2.rpy()[2]-np.pi/2+offset_z_rot)
+        q = UnitQuaternion(rot).vec_xyzs
+
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return False       , True,       p, q, ''
+
+    def get_mode_1_move_2(self, relevant_data, ontology_client):
+        # if not self.is_drawer_opened(relevant_data, ontology_client):
+        #     move_gripper = True
+        #     gripper = 'open'
+        # else:
+        
+        move_gripper = True
+        gripper = 'open'
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return move_gripper, False,      0, 0, gripper
+
     def blueprint_mode_1(self, robot_client, ontology_client):
         '''
         Involving self vars:
@@ -128,38 +162,18 @@ class PutIntoTask(BaseTask):
             return True, relevant_data
 
         def move_1(relevant_data):
-            ''' Move above the picking object '''
-            p = deepcopy(np.array(relevant_data['target_object'].absolute_location))
-
-            p += TEMPORARY_VISION_ERROR_CORRECTION_POINT
-            p[2] += self.execution_config_params['move_near_z_offset']
-            p[2] += get_z_offset_from_center(relevant_data['target_object'].name)
-
-            ''' fix offset z rot '''
-            offset_z_rot = 0.0
-            q_ = np.array([1.,0.,0.,0.])
-            q = UnitQuaternion([0.0,0.0,1.0,0.0]) # w,x,y,z
-            q_2 = UnitQuaternion([q_[3], *q_[0:3]])
-
-            rot = sm.SO3(q.R) * sm.SO3.Rz(q_2.rpy()[2]-np.pi/2+offset_z_rot)
-            q = UnitQuaternion(rot).vec_xyzs
-
-            robot_client.move_pose(p, q)
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_1(relevant_data, ontology_client)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper, robot_client)
 
             return True, relevant_data
 
 
         def move_2(relevant_data):
-            # p, q = relevant_data['p'], relevant_data['q']
-            # ''' Move up littlebit '''
-            # p[2] += self.execution_config_params['move_final_z_offset']
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_2(relevant_data, ontology_client)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper, robot_client)
 
-            # robot_client.move_pose(p, q)
-            if not self.is_drawer_opened(relevant_data, ontology_client):
-                return False, relevant_data
-            else:
-                robot_client.open_gripper()
-                return True, relevant_data
+            return True, relevant_data
+
 
         def check_postconditions(relevant_data):
 

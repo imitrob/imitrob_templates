@@ -24,7 +24,7 @@ PickTaskConfig = {
     'requirements': {'+': ['reachable', 'pickable'], '-': ['glued','full-stack']},
     'execution_config_params': {
         'move_near_z_offset': 0.1,
-        'move_final_z_offset': 0.04,
+        'move_final_z_offset': 0.2,
     },
     
     'mm_pars_compulsary': ['template', 'selections'],
@@ -221,7 +221,7 @@ PutIntoTaskConfig = {
     'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
                      's+': ['reachable'], 's-': ['full-stack','full-liquid','full-container'], 'st': ['container']},
     'execution_config_params': {
-        'move_near_z_offset': 0.15,
+        'move_near_z_offset': 0.10,
     },
     
     'mm_pars_compulsary': ['template', 'selections', 'storages'],
@@ -242,6 +242,10 @@ StackTaskConfig = {
     'requirements': {'+': ['reachable', 'pickable'], '-': ['full-stack', 'glued'],
                      's+': ['reachable', 'stackable'], 's-': ['full-stack']},
     'execution_config_params': {
+        'move_near_z_offset': 0.1,
+        'move_final_z_offset': 0.04,
+        'placing_object_move_real_z_offset': 0.2,
+        'placing_object_move_final_z_offset': 0.07,
     },
     
     'mm_pars_compulsary': ['template', 'selections', 'storages'],
@@ -312,7 +316,7 @@ CloseTaskConfig = {
 }
 
 NonMovePartRelations = {
-    'drawer_socket': 'drawer_cabinet',
+    'drawer': 'drawer_cabinet',
 }
 
-TEMPORARY_VISION_ERROR_CORRECTION_POINT = np.array([0.03, 0.0, 0.0])
+TEMPORARY_VISION_ERROR_CORRECTION_POINT = np.array([0.0, 0.0, 0.0])

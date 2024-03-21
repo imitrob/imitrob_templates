@@ -51,6 +51,12 @@ class BaseTask(Template):
         self._2_grounded_data = {}
         ''' Result of ground: Real data about the grounding'''
 
+        self.target_object_placeholder = None
+        ''' If _2_ground_data not set '''
+        self.target_storage_placeholder = None
+        ''' If _2_ground_data not set '''
+
+
         self.template_probs = ProbsVector(c='default')
         
         self.feasibility_requirements = task_config['requirements']
@@ -344,6 +350,8 @@ class BaseTask(Template):
         ''' Concept '''
         if 'to' in self._2_grounded_data:
             return self._2_grounded_data['to'].to.max
+        elif self.target_object_placeholder is not None:
+            return self.target_object_placeholder
         else:
             return None
 
@@ -352,11 +360,48 @@ class BaseTask(Template):
         ''' Concept '''
         if 'ts' in self._2_grounded_data:
             return self._2_grounded_data['ts'].to.max
+        elif self.target_storage_placeholder is not None:
+            return self.target_storage_placeholder
         else:
             return None
+
+    @target_object.setter
+    def target_object(self, value):
+        self.target_object_placeholder = value
+
+    @target_storage.setter
+    def target_storage(self, value):
+        self.target_storage_placeholder = value
+
 
     def blueprint_mode_1(self):
         raise NotImplementedError("This should be overloaded")
     
     def mvae_mode(self):
         raise NotImplementedError("This should be overloaded")
+
+    def pqg_execute(self, move_gripper, move_robot, p, q, gripper, robot_client):
+        ## TODO ADD DIALOGUE
+        # Checks if target position is correct
+        # r = RealRobotConvenience.check_or_return(p, q)
+        # if r == 'r': return r
+
+        if move_robot:
+            robot_client.move_pose(p, q)
+
+        if move_gripper:
+            if gripper == 'open':
+                robot_client.open_gripper()
+            elif gripper == 'close':
+                robot_client.close_gripper()
+            else: raise Exception("Exception")
+
+        ## TODO CORRECTION BY TELEOPERATION
+        # if not RealRobotConvenience.correction_by_teleop():
+        #     return 'q'
+        # else:
+        #     pass
+        #     # print(f"target_object position corrected, diff {target_object['absolute_location'][0] - md.goal_pose.position.x}, {scene_object['absolute_location'][1] - md.goal_pose.position.y}")
+        #     # Manually update target_object position, e.g.:
+        #     # target_object['absolute_location'][0] = md.goal_pose.position.x
+        #     # target_object['absolute_location'][1] = md.goal_pose.position.y

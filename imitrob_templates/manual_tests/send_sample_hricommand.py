@@ -28,7 +28,7 @@ def run_template(rosnode, target_action, object_name='cube_holes'):
         target_object = None
         for n,o_name in enumerate(scene.O):
             print(f"object: {o_name}, position: {scene.objects[n].position_real}")
-            if object_name in o_name: # e.g.: 'cube_holes_od_0'
+            if object_name == o_name.split("_od_")[0]: # e.g.: 'cube_holes_od_0'
                 target_object = o_name
                 break
         if target_object is None:
@@ -98,20 +98,20 @@ def main_drawer():
 
     while True:
         target_action = str(input("Enter task name: "))
-        run_template(rosnode, target_action, object_name='drawer_socket')
+        run_template(rosnode, target_action, object_name='drawer')
 
 def main_test():
     ''' demo 9-2-2024 '''
     rclpy.init()
     rosnode = PublishHRICommand()
 
-    run_template(rosnode, target_action='open', object_name='drawer_socket')
+    run_template(rosnode, target_action='open', object_name='drawer')
     input()
     run_template(rosnode, target_action='pick', object_name='cube')
     input()
-    run_template(rosnode, target_action='put-into', object_name='drawer_socket')
+    run_template(rosnode, target_action='put-into', object_name='drawer')
     input()
-    run_template(rosnode, target_action='close', object_name='drawer_socket')
+    run_template(rosnode, target_action='close', object_name='drawer')
     input()
 
 

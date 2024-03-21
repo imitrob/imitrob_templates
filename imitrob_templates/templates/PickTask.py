@@ -16,6 +16,8 @@ from imitrob_hri.imitrob_nlp.modules.ObjectGrounder import ObjectGrounder
 from imitrob_hri.imitrob_nlp.database.Ontology import Template
 from imitrob_hri.imitrob_nlp.modules.UserInputManager import UserInputManager
 from crow_msgs.msg import CommandType
+from imitrob_templates.config import TEMPORARY_VISION_ERROR_CORRECTION_POINT
+
 
 class PickTask(BaseTask):
 
@@ -74,6 +76,50 @@ class PickTask(BaseTask):
 
         # Returns list of grounded data
         return True, relevant_data
+    
+
+    def get_mode_1_move_1(self, relevant_data):
+        target_object = relevant_data['target_object']
+        ''' Move above the picking object '''
+        p = deepcopy(np.array(target_object.absolute_location))
+
+        p += TEMPORARY_VISION_ERROR_CORRECTION_POINT
+
+        p[2] += self.execution_config_params['move_near_z_offset']
+        # Get Robot EEF rotation from object orientation
+        #q = np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN))
+        q = np.array([1.,0.,0.,0.])
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return True        , True,       p, q, 'open'
+
+    def get_mode_1_move_2(self, relevant_data):
+        target_object = relevant_data['target_object']
+        ''' Move to object grasp point '''
+        p = deepcopy(np.array(target_object.absolute_location))
+        p[2] += get_z_offset_from_center(target_object.name)
+        # q = deepcopy(np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN)))
+        q = np.array([1.,0.,0.,0.])
+
+        p += TEMPORARY_VISION_ERROR_CORRECTION_POINT
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return True        , True,       p, q, 'close'
+
+
+    def get_mode_1_move_3(self, relevant_data):
+        target_object = relevant_data['target_object']
+        ''' Move to object grasp point '''
+        p = deepcopy(np.array(target_object.absolute_location))
+        p[2] += get_z_offset_from_center(target_object.name)
+        # q = deepcopy(np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN)))
+        q = np.array([1.,0.,0.,0.])
+
+        ''' Move up littlebit '''
+        p[2] += self.execution_config_params['move_final_z_offset']
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return False       , True,       p, q, ''
 
     def blueprint_mode_1(self, robot_client, ontology_client):
         '''
@@ -87,55 +133,21 @@ class PickTask(BaseTask):
             return True, relevant_data
 
         def move_1(relevant_data):
-            target_object = relevant_data['target_object']
-            ''' Move above the picking object '''
-            p = deepcopy(np.array(target_object.absolute_location))
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_1(relevant_data)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper, robot_client)
 
-            p[2] += self.execution_config_params['move_near_z_offset']
-            # Get Robot EEF rotation from object orientation
-            #q = np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN))
-            q = np.array([1.,0.,0.,0.])
-
-            # Checks if target position is correct
-            # r = RealRobotConvenience.check_or_return(p, q)
-            # if r == 'r': return r
-
-            robot_client.open_gripper()
-            robot_client.move_pose(p, q)
-
-            # if not RealRobotConvenience.correction_by_teleop():
-            #     return 'q'
-            # else:
-            #     pass
-            #     # print(f"target_object position corrected, diff {target_object['absolute_location'][0] - md.goal_pose.position.x}, {scene_object['absolute_location'][1] - md.goal_pose.position.y}")
-            #     # Manually update target_object position, e.g.:
-            #     # target_object['absolute_location'][0] = md.goal_pose.position.x
-            #     # target_object['absolute_location'][1] = md.goal_pose.position.y
             return True, relevant_data
 
         def move_2(relevant_data):
-            target_object = relevant_data['target_object']
-            ''' Move to object grasp point '''
-            p = deepcopy(np.array(target_object.absolute_location))
-            p[2] += get_z_offset_from_center(target_object.name)
-            q = deepcopy(np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN)))
-            # r = RealRobotConvenience.check_or_return(p, q)
-            # if r == 'r': return r
-            robot_client.move_pose(p, q)
-            robot_client.close_gripper()
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_2(relevant_data)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper, robot_client)
 
-            # Pragmatic: Pick target_object should have included some time delay
-            # time.sleep(2.)
-            relevant_data['p'], relevant_data['q'] = p, q
             return True, relevant_data
 
         def move_3(relevant_data):
-            p, q = relevant_data['p'], relevant_data['q']
-            ''' Move up littlebit '''
-            p[2] += self.execution_config_params['move_final_z_offset']
-
-            robot_client.move_pose(p, q)
-
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_3(relevant_data)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper, robot_client)
+            
             return True, relevant_data
 
         def check_postconditions(relevant_data):

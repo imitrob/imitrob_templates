@@ -68,7 +68,8 @@ class OpenTask(BaseTask):
             target_opened_object_name = opened_object
 
             target_opened_object = self.scene.get_object_by_name(target_opened_object_name)
-            # find 'drawer_cabinet non-movable part related to drawer_socket moving part
+            if target_opened_object is None: continue
+            # find 'drawer_cabinet non-movable part related to drawer moving part
             non_move_part_type = NonMovePartRelations[target_opened_object.type]
 
             # Load target_object using its ID
@@ -89,9 +90,13 @@ class OpenTask(BaseTask):
         ''' Note: Drawer is directed in y axis
             That's why center_to_handle added to y axis
         '''
-
         center_to_handle = self.execution_config_params['drawer_center_to_handle']
 
+        loc = target_opened_object.absolute_location + np.array([0.0, center_to_handle, 0.0])
+
+        return loc, target_opened_object.quaternion
+
+        # FIX here:
         R_robot = R.from_quat(target_opened_object.quaternion)
         T_base_openedobject = np.eye(4)
         T_base_openedobject[:3, :3] = R_robot.as_matrix()
@@ -114,6 +119,11 @@ class OpenTask(BaseTask):
         
         center_to_handle = self.execution_config_params['drawer_center_to_handle']
 
+        loc = drawer_cabinet.absolute_location + np.array([0.0, center_to_handle + max_gauge, 0.0])
+
+        return loc, drawer_cabinet.quaternion
+
+        ## FIX HERE
         R_robot = R.from_quat(drawer_cabinet.quaternion)
         T_base_openedobject = np.eye(4)
         T_base_openedobject[:3, :3] = R_robot.as_matrix()
@@ -133,6 +143,10 @@ class OpenTask(BaseTask):
         '''
         center_to_handle = self.execution_config_params['drawer_center_to_handle']
 
+        loc = drawer_cabinet.absolute_location + np.array([0.0, center_to_handle + 0.01, 0.0])
+
+        return loc, drawer_cabinet.quaternion
+
         R_robot = R.from_quat(drawer_cabinet.quaternion)
         T_base_openedobject = np.eye(4)
         T_base_openedobject[:3, :3] = R_robot.as_matrix()
@@ -147,6 +161,7 @@ class OpenTask(BaseTask):
         return T_base_maxopenedobjecthandle[:3, 3], T_base_maxopenedobjecthandle_rotvec.as_quat(canonical=False)
 
     def get_handle_pose(self, relevant_data): 
+        
         p, q = self.target_opened_object_to_handle(relevant_data['target_opened_object'])
         p += TEMPORARY_VISION_ERROR_CORRECTION_POINT
         p[2] += get_z_offset_from_center(relevant_data['target_opened_object'].name)
@@ -183,69 +198,74 @@ class OpenTask(BaseTask):
 
         return p, q
 
+
+
+    def get_mode_1_move_1(self, relevant_data):
+        ''' Move above the picking object '''
+        p, q = self.get_handle_pose(relevant_data)
+
+        ''' move above '''
+        p[2] += self.execution_config_params['move_near_z_offset']
+
+        # Get Robot EEF rotation from object orientation
+        #q = np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN))
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return True        , True,       p, q, 'open'
+
+    def get_mode_1_move_2(self, relevant_data):
+        ''' Move to object grasp point '''
+        p, q = self.get_handle_pose(relevant_data)
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return True        , True,       p, q, 'close'
+
+    def get_mode_1_move_3(self, relevant_data):
+        ''' Move opened! '''
+        p1, q1 = self.get_handle_pose(relevant_data)
+        p, q = self.get_drawer_pose_at_state(relevant_data, drawer_state='open')
+        p[0] = p1[0]
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return True        , True,       p, q, 'open'
+
+    def get_mode_1_move_4(self, relevant_data):
+        ''' Move up littlebit '''
+        p=[0.5,0.0,0.3]
+        q=[1.0,0.0,0.0,0.0]
+
+        #     :move_gripper, move_robot, p, q, gripper
+        return False       , True,       p, q, ''
+
     def blueprint_mode_1(self, robot_client, ontology_client):
         def check_preconditions(relevant_data):
             # if not check_grasped(): return False
             return True, relevant_data
 
         def move_1(relevant_data):
-            ''' Move above the picking object '''
-            p, q = self.get_handle_pose(relevant_data)
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_1(relevant_data)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper)
 
-            ''' move above '''
-            p[2] += self.execution_config_params['move_near_z_offset']
-
-            # Get Robot EEF rotation from object orientation
-            #q = np.array(get_quaternion_eef(target_object.quaternion, target_object.nlp_name_EN))
-            
-            # Checks if target position is correct
-            # r = RealRobotConvenience.check_or_return(p, q)
-            # if r == 'r': return r
-
-            robot_client.open_gripper()
-            robot_client.move_pose(p, q)
-
-            # if not RealRobotConvenience.correction_by_teleop():
-            #     return 'q'
-            # else:
-            #     passprint(f"move_2: p: {p}; q: {q}")
-            
-            #     # print(f"target_object position corrected, diff {target_object['absolute_location'][0] - md.goal_pose.position.x}, {scene_object['absolute_location'][1] - md.goal_pose.position.y}")
-            #     # Manually update target_object position, e.g.:
-            #     # target_object['absolute_location'][0] = md.goal_pose.position.x
-            #     # target_object['absolute_location'][1] = md.goal_pose.position.y
             return True, relevant_data
 
         def move_2(relevant_data):
-            ''' Move to object grasp point '''
-            p, q = self.get_handle_pose(relevant_data)
-
-            # r = RealRobotConvenience.check_or_return(p, q)
-            # if r == 'r': return r
-            robot_client.move_pose(p, q)
-            robot_client.close_gripper()
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_2(relevant_data)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper)
 
             # Pragmatic: Pick target_object should have included some time delay
             # time.sleep(2.)
             return True, relevant_data
 
         def move_3(relevant_data):
-            ''' Move opened! '''
-            p, q = self.get_drawer_pose_at_state(relevant_data, drawer_state='open')
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_3(relevant_data)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper)
             
-            robot_client.move_pose(p, q)
-            # robot_client.open_gripper()
-
             return True, relevant_data
 
         def move_4(relevant_data):
-            # p, q = relevant_data['p'], relevant_data['q']
-            ''' Move up littlebit '''
-            # p[2] += self.execution_config_params['move_final_z_offset']
-
-            robot_client.open_gripper()
-            robot_client.move_pose(p=[0.5,0.0,0.3], q=[1.0,0.0,0.0,0.0])
-
+            move_gripper, move_robot, p, q, gripper = self.get_mode_1_move_4(relevant_data)
+            self.pqg_execute(move_gripper, move_robot, p, q, gripper)
+            
             return True, relevant_data
 
         def is_drawer_opened():
